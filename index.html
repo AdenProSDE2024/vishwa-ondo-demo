@@ -1,0 +1,1252 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Vishwa × Ondo — Product MCP Rails</title>
+<style>
+  :root{
+    --bg:#F7F8FA;
+    --surface:#FFFFFF;
+    --ink:#0A2540;
+    --text:#425466;
+    --faint:#8792A2;
+    --line:#E6E9EF;
+    --line-soft:#EEF1F5;
+    --lime:#C6F32E;
+    --lime-ink:#3F5206;
+    --navy:#0A2540;
+    --good:#188554;
+    --good-bg:#EBF7F0;
+    --good-line:#C6E8D4;
+    --bad:#D92D20;
+    --bad-bg:#FDEEEC;
+    --bad-line:#F5C6C0;
+    --amber:#B54708;
+    --amber-bg:#FDF4E7;
+    --mono:ui-monospace,'SF Mono',SFMono-Regular,Menlo,Consolas,'Liberation Mono',monospace;
+    --font-ui:system-ui,-apple-system,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+    --shadow:0 1px 2px rgba(16,24,40,.04),0 4px 14px -4px rgba(16,24,40,.07);
+    --shadow-lg:0 4px 10px rgba(16,24,40,.05),0 20px 44px -12px rgba(16,24,40,.14);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{font-family:var(--font-ui);background:var(--bg);color:var(--text);-webkit-font-smoothing:antialiased;font-size:14px;line-height:1.5}
+  ::selection{background:var(--lime)}
+
+  /* ---------- header ---------- */
+  header{
+    position:sticky;top:0;z-index:60;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);
+    border-bottom:1px solid var(--line);padding:13px 28px;display:flex;align-items:center;gap:18px;flex-wrap:wrap;
+  }
+  .logo{display:flex;align-items:center;gap:12px}
+  .logo svg{height:30px;width:auto;display:block}
+  .logo .xtag{
+    font-family:var(--mono);font-size:10px;letter-spacing:.14em;color:var(--faint);
+    border:1px solid var(--line);border-radius:999px;padding:4px 11px;text-transform:uppercase;
+  }
+  .spacer{flex:1}
+  .tabs{display:flex;gap:6px;background:var(--line-soft);border-radius:999px;padding:4px}
+  .tab{
+    border:none;background:transparent;color:var(--text);font-family:var(--font-ui);
+    font-weight:550;font-size:12.5px;padding:8px 16px;border-radius:999px;cursor:pointer;transition:all .18s;white-space:nowrap;
+  }
+  .tab .num{font-family:var(--mono);font-size:10px;color:var(--faint);margin-right:6px}
+  .tab.active{background:var(--navy);color:#fff;box-shadow:var(--shadow)}
+  .tab.active .num{color:var(--lime)}
+  .reset-btn{border:none;background:none;color:var(--faint);font-size:12px;font-weight:500;cursor:pointer;text-decoration:underline}
+
+  main{padding:30px 28px 90px;max-width:1460px;margin:0 auto}
+  .view{display:none}
+  .view.active{display:block;animation:fadein .25s ease}
+  @keyframes fadein{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+
+  .hero-line{font-size:clamp(20px,2.3vw,27px);font-weight:550;letter-spacing:-.02em;line-height:1.3;color:var(--ink);margin-bottom:7px}
+  .hero-line .accent{background:linear-gradient(120deg,#5F7E10,#8CB513);-webkit-background-clip:text;background-clip:text;color:transparent}
+  .hero-sub{color:var(--faint);font-size:13.5px;margin-bottom:26px;max-width:780px}
+
+  /* ---------- cards ---------- */
+  .cols{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px}
+  @media(max-width:1100px){.cols{grid-template-columns:1fr}}
+  .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:20px;box-shadow:var(--shadow)}
+  .card.dim{opacity:.5;pointer-events:none}
+  .card h3{
+    font-size:11px;letter-spacing:.11em;font-weight:600;color:var(--faint);text-transform:uppercase;
+    display:flex;align-items:center;gap:9px;margin-bottom:5px;
+  }
+  .stepnum{
+    width:20px;height:20px;border-radius:6px;background:var(--navy);color:var(--lime);
+    display:inline-flex;align-items:center;justify-content:center;font-family:var(--mono);font-size:11px;font-weight:600;flex:none;
+  }
+  .card .sub{font-size:12.5px;color:var(--faint);margin-bottom:15px}
+
+  /* buttons */
+  .btn{
+    border:1px solid var(--line);border-radius:999px;padding:9px 18px;font-family:var(--font-ui);
+    font-size:12.5px;font-weight:550;cursor:pointer;background:#fff;color:var(--ink);transition:all .15s;
+  }
+  .btn:hover{border-color:#C7CEDA;box-shadow:var(--shadow)}
+  .btn.primary{background:var(--navy);color:#fff;border-color:var(--navy)}
+  .btn.primary:hover{background:#123256}
+  .btn.lime{background:var(--lime);border-color:var(--lime);color:var(--lime-ink)}
+  .btn:disabled{opacity:.4;cursor:not-allowed;box-shadow:none}
+  .btnrow{display:flex;gap:10px;margin-top:15px;flex-wrap:wrap}
+  .tiny-note{font-size:10.5px;color:var(--faint);margin-top:11px;text-align:center}
+
+  /* dropzone */
+  .drop{
+    border:1.5px dashed #D4DAE3;border-radius:13px;padding:26px 16px;text-align:center;cursor:pointer;
+    transition:all .15s;background:#FBFCFE;
+  }
+  .drop:hover,.drop.over{border-color:var(--navy);background:#F4F8EC}
+  .drop .arrow{width:34px;height:34px;border-radius:50%;background:var(--lime);color:var(--lime-ink);display:inline-flex;align-items:center;justify-content:center;font-size:15px;font-weight:600;margin-bottom:8px}
+  .drop b{display:block;font-size:13.5px;color:var(--ink);font-weight:550}
+  .drop span{font-size:11.5px;color:var(--faint)}
+  .filelist{margin-top:12px;display:flex;flex-direction:column;gap:7px}
+  .file{
+    display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;padding:9px 12px;background:#fff;
+    animation:pop .25s ease;
+  }
+  @keyframes pop{from{transform:translateY(5px);opacity:0}to{transform:none;opacity:1}}
+  .file .ftype{font-family:var(--mono);font-size:9px;font-weight:600;background:var(--navy);color:#fff;border-radius:4px;padding:3px 5px}
+  .file .fname{font-size:12px;font-weight:500;color:var(--ink);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .file .fsize{font-size:10px;color:var(--faint)}
+  .file .fstat{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.06em}
+  .file .fstat.parsing{color:var(--amber)}
+  .file .fstat.ready{color:var(--good)}
+  .spinner{display:inline-block;width:9px;height:9px;border:1.5px solid var(--amber);border-top-color:transparent;border-radius:50%;animation:spin .7s linear infinite;margin-left:5px}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* extraction */
+  .exline{display:flex;align-items:center;gap:9px;font-size:12px;padding:4.5px 0;color:var(--faint)}
+  .exline.done{color:var(--text)}
+  .exline.doing{color:var(--amber)}
+  .exline .tick{width:15px;height:15px;border-radius:50%;border:1.5px solid var(--line);flex:none;display:inline-flex;align-items:center;justify-content:center;font-size:8.5px}
+  .exline.done .tick{background:var(--good);border-color:var(--good);color:#fff}
+
+  .prodgroup{margin-top:16px;border:1px solid var(--line);border-radius:13px;padding:14px;animation:pop .3s ease}
+  .prodgroup .phead{display:flex;align-items:center;gap:10px;margin-bottom:10px}
+  .pmark{width:30px;height:30px;border-radius:9px;display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;color:#fff;flex:none}
+  .prodgroup .pname{font-size:13.5px;font-weight:600;color:var(--ink)}
+  .prodgroup .ptype{font-size:11px;color:var(--faint)}
+  .prodgroup .pyield{margin-left:auto;font-family:var(--mono);font-size:13px;font-weight:600;color:var(--good)}
+  .polrow{
+    display:flex;align-items:flex-start;gap:9px;padding:7px 0;border-top:1px solid var(--line-soft);font-size:12px;
+  }
+  .polrow .pk{font-weight:550;color:var(--ink);white-space:nowrap;min-width:88px}
+  .polrow .pv{color:var(--text);flex:1}
+  .polrow .src{font-family:var(--mono);font-size:8.5px;color:var(--faint);border:1px solid var(--line);border-radius:4px;padding:2px 5px;white-space:nowrap}
+
+  /* roles */
+  .role{
+    border:1px solid var(--line);border-radius:13px;padding:13px 14px;margin-bottom:10px;background:#fff;
+    display:flex;align-items:center;gap:12px;transition:all .2s;flex-wrap:wrap;
+  }
+  .role.active{border-color:#B9C3D4;box-shadow:var(--shadow)}
+  .role.done{border-color:var(--good-line);background:var(--good-bg)}
+  .avatar{
+    width:32px;height:32px;border-radius:50%;background:var(--navy);color:var(--lime);
+    display:inline-flex;align-items:center;justify-content:center;font-weight:600;font-size:12px;flex:none;
+  }
+  .role.done .avatar{background:var(--good);color:#fff}
+  .role .rinfo{flex:1;min-width:150px}
+  .role .rname{font-size:13px;font-weight:600;color:var(--ink)}
+  .role .rdesc{font-size:11px;color:var(--faint)}
+  .role .rstat{font-family:var(--mono);font-size:9.5px;font-weight:600;letter-spacing:.08em}
+  .role .rstat.waiting{color:var(--faint)}
+  .role .rstat.ok{color:var(--good)}
+  .role .badge{font-family:var(--mono);font-size:8.5px;font-weight:600;background:var(--amber-bg);color:var(--amber);border-radius:5px;padding:3px 8px;letter-spacing:.06em;animation:pop .3s ease;white-space:nowrap}
+  .role .sig{font-family:var(--mono);font-size:9.5px;color:var(--good);margin-top:3px}
+  .review{border-top:1px dashed var(--line);margin-top:11px;padding-top:11px;width:100%;animation:pop .25s ease}
+  .review .rv-hint{font-size:10.5px;color:var(--faint);margin-bottom:8px;font-weight:550}
+  .rvitem{display:flex;gap:9px;align-items:flex-start;padding:8px 10px;border:1px solid var(--line);border-radius:9px;margin-bottom:6px;font-size:12px;background:#FBFCFE;cursor:pointer;transition:all .15s}
+  .rvitem input{margin-top:2px;accent-color:var(--navy);width:14px;height:14px;flex:none;cursor:pointer}
+  .rvitem b{display:block;font-size:12px;color:var(--ink);font-weight:550}
+  .rvitem span{color:var(--faint);font-size:11px}
+  .rvitem.checked{border-color:var(--good-line);background:var(--good-bg)}
+
+  /* MCP output */
+  .mcp-card{background:var(--navy);color:#fff;border-radius:14px;padding:18px;margin-top:15px;animation:pop .35s ease;box-shadow:var(--shadow-lg)}
+  .mcp-card .mtitle{display:flex;align-items:center;gap:11px;margin-bottom:11px}
+  .mcp-card .mlogo{width:32px;height:32px;border-radius:9px;background:var(--lime);color:var(--lime-ink);font-weight:600;display:inline-flex;align-items:center;justify-content:center;font-size:13px}
+  .mcp-card .mname{font-weight:600;font-size:14px}
+  .mcp-card .msub{font-family:var(--mono);font-size:9.5px;color:#8DA2C0}
+  .mcp-card .live{margin-left:auto;font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.1em;background:var(--lime);color:var(--lime-ink);border-radius:5px;padding:3px 8px}
+  .mstat{display:flex;justify-content:space-between;font-size:12px;padding:7px 0;border-bottom:1px solid #1D3A5F;color:#A9BBD6}
+  .mstat b{color:#fff;font-weight:550}
+  .tools{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .tool{font-family:var(--mono);font-size:10.5px;background:#12335A;border:1px solid #24466F;color:var(--lime);border-radius:999px;padding:5px 11px}
+  .manifest{
+    font-family:var(--mono);font-size:10px;background:#071A30;border:1px solid #1D3A5F;border-radius:10px;
+    padding:13px;margin-top:12px;color:#7E93B2;white-space:pre;overflow-x:auto;max-height:220px;overflow-y:auto;line-height:1.6;
+  }
+  .manifest .k{color:#7FC4FF}.manifest .s{color:var(--lime)}
+  .publish-banner{
+    margin-top:15px;border:1px solid var(--good-line);background:var(--good-bg);border-radius:13px;padding:14px 16px;
+    font-weight:550;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:12px;animation:pop .35s ease;flex-wrap:wrap;
+  }
+
+  /* ---------- treasury ---------- */
+  .tre-grid{display:grid;grid-template-columns:400px 1fr;gap:18px;align-items:start}
+  @media(max-width:1100px){.tre-grid{grid-template-columns:1fr}}
+  .postable{width:100%;border-collapse:collapse;font-size:12.5px;margin-top:4px}
+  .postable th{font-size:10px;letter-spacing:.09em;color:var(--faint);font-weight:600;text-align:left;padding:6px 4px;border-bottom:1px solid var(--line)}
+  .postable td{padding:9px 4px;border-bottom:1px solid var(--line-soft);color:var(--ink)}
+  .postable td.r{text-align:right;font-family:var(--mono);font-size:12px;font-weight:500;font-variant-numeric:tabular-nums}
+  .postable th.r{text-align:right}
+  .postable .asset{font-weight:600}
+  .postable .venue{font-size:10px;color:var(--faint);font-weight:400}
+  .postable tr.total td{font-weight:600;border-bottom:none;border-top:1.5px solid var(--ink)}
+  .postable tr.newrow td{background:#F7FBEC}
+  .newtag{font-family:var(--mono);font-size:8px;font-weight:600;background:var(--lime);color:var(--lime-ink);border-radius:4px;padding:2px 5px;margin-left:6px;letter-spacing:.06em;vertical-align:1px}
+  .mandate{display:flex;flex-wrap:wrap;gap:6px;margin-top:12px}
+  .mtag{font-size:10.5px;font-weight:500;border:1px solid var(--line);border-radius:999px;padding:4px 10px;background:#fff;color:var(--text)}
+  .mtag.g{background:var(--good-bg);border-color:var(--good-line);color:var(--good)}
+  .ctrl-row{display:flex;gap:8px;margin-top:14px;align-items:center;flex-wrap:wrap}
+  .ctrl-row .mode{font-family:var(--mono);font-size:9px;font-weight:600;letter-spacing:.08em;color:var(--good);background:var(--good-bg);border-radius:6px;padding:5px 9px}
+  .kill{border:1px solid var(--bad-line);color:var(--bad);background:#fff;border-radius:999px;font-size:11.5px;font-weight:550;padding:7px 14px;cursor:pointer}
+  .pause{border:1px solid var(--line);background:#fff;border-radius:999px;font-size:11.5px;font-weight:550;padding:7px 14px;cursor:pointer;color:var(--ink)}
+
+  .shelf .prod{display:flex;align-items:center;gap:11px;border:1px solid var(--line);border-radius:12px;padding:11px 13px;margin-bottom:8px;background:#fff}
+  .shelf .prod.newprod{border-color:#B7D45A;background:#F9FCEF;animation:pop .4s ease}
+  .shelf .pname{font-size:12.5px;font-weight:600;color:var(--ink)}
+  .shelf .pdesc{font-size:10.5px;color:var(--faint)}
+  .shelf .pright{margin-left:auto;text-align:right}
+  .shelf .py{font-family:var(--mono);font-size:11.5px;font-weight:600;color:var(--ink)}
+  .shelf .ptag{font-family:var(--mono);font-size:8.5px;color:var(--faint);letter-spacing:.06em}
+  .shelf-empty{font-size:11.5px;color:var(--faint);border:1px dashed var(--line);border-radius:11px;padding:14px;text-align:center}
+
+  /* chat */
+  .chat-card{padding:0;overflow:hidden;display:flex;flex-direction:column;min-height:620px}
+  .chat-head{padding:14px 18px;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:10px;background:#FBFCFE}
+  .chat-head .cdot{width:9px;height:9px;border-radius:50%;background:var(--good);box-shadow:0 0 0 3px var(--good-bg)}
+  .chat-head b{font-size:13px;color:var(--ink);font-weight:600}
+  .chat-head span{font-size:11px;color:var(--faint)}
+  .chat-body{flex:1;padding:18px;overflow-y:auto;display:flex;flex-direction:column;gap:14px;max-height:600px}
+  .msg{max-width:88%;animation:pop .25s ease}
+  .msg.user{align-self:flex-end}
+  .msg.user .bubble{background:var(--navy);color:#fff;border-radius:14px 14px 4px 14px;padding:10px 14px;font-size:13px}
+  .msg.agent .bubble{background:#fff;border:1px solid var(--line);border-radius:4px 14px 14px 14px;padding:12px 14px;font-size:13px;line-height:1.55;color:var(--text);box-shadow:var(--shadow)}
+  .msg .who{font-family:var(--mono);font-size:8.5px;font-weight:600;letter-spacing:.1em;color:var(--faint);margin-bottom:4px}
+  .msg.user .who{text-align:right}
+  .msg b{color:var(--ink)}
+  .typing{display:inline-flex;gap:4px;padding:4px 2px}
+  .typing i{width:6px;height:6px;border-radius:50%;background:#C3CBD8;animation:blink 1s infinite}
+  .typing i:nth-child(2){animation-delay:.18s}.typing i:nth-child(3){animation-delay:.36s}
+  @keyframes blink{0%,70%,100%{opacity:.25}35%{opacity:1}}
+  .metrics{width:100%;border-collapse:collapse;font-size:12px;margin:8px 0 2px}
+  .metrics td{padding:6px 8px;border-bottom:1px solid var(--line-soft);color:var(--text)}
+  .metrics td.r{text-align:right;font-family:var(--mono);font-size:11.5px;font-weight:550;color:var(--ink);font-variant-numeric:tabular-nums;white-space:nowrap}
+  .metrics tr.hl td{background:#F7FBEC;font-weight:550;color:var(--ink)}
+  .gates{margin:8px 0 2px;display:flex;flex-direction:column;gap:6px}
+  .gate{display:flex;gap:9px;align-items:flex-start;border:1px solid var(--good-line);background:var(--good-bg);border-radius:10px;padding:8px 11px;font-size:12px}
+  .gate .gi{width:15px;height:15px;border-radius:50%;background:var(--good);color:#fff;font-size:8.5px;display:inline-flex;align-items:center;justify-content:center;flex:none;margin-top:2px}
+  .gate b{display:block;font-size:12px;color:var(--ink);font-weight:550}
+  .gate span{color:var(--text);font-size:11px}
+  .gate.bad{border-color:var(--bad-line);background:var(--bad-bg)}
+  .gate.bad .gi{background:var(--bad)}
+  .verdict{border-radius:9px;padding:8px 13px;font-family:var(--mono);font-weight:600;font-size:11px;letter-spacing:.05em;margin-top:8px;display:inline-block}
+  .verdict.ok{background:var(--good-bg);color:var(--good)}
+  .verdict.no{background:var(--bad-bg);color:var(--bad)}
+  .confirm-row{display:flex;gap:9px;margin-top:10px}
+  .receipt{
+    font-family:var(--mono);font-size:10px;background:#071A30;color:#7E93B2;border-radius:10px;padding:12px 14px;margin-top:9px;
+    line-height:1.7;overflow-x:auto;white-space:pre;
+  }
+  .receipt .h{color:var(--lime)}
+  .chips{padding:12px 18px;border-top:1px solid var(--line);display:flex;gap:8px;flex-wrap:wrap;background:#FBFCFE}
+  .chip{border:1px solid var(--line);background:#fff;border-radius:999px;padding:7px 13px;font-size:11.5px;font-weight:500;cursor:pointer;color:var(--ink);transition:all .15s}
+  .chip:hover{border-color:#C7CEDA;box-shadow:var(--shadow)}
+  .chip:disabled{opacity:.4;cursor:not-allowed}
+  .inputrow{display:flex;gap:9px;padding:12px 18px;border-top:1px solid var(--line);background:#fff}
+  .inputrow input{flex:1;border:1px solid var(--line);border-radius:999px;padding:10px 16px;font-size:13px;outline:none;font-family:inherit;color:var(--ink)}
+  .inputrow input:focus{border-color:var(--navy);box-shadow:0 0 0 3px rgba(10,37,64,.08)}
+  .send{border:none;background:var(--navy);color:var(--lime);border-radius:999px;width:40px;height:40px;font-size:15px;cursor:pointer;flex:none}
+
+  /* ---------- ledger ---------- */
+  .ledger-card{margin-top:18px}
+  .audstats{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:13px}
+  .audstats .stat b{display:block;font-family:var(--mono);font-size:19px;font-weight:600;color:var(--ink);font-variant-numeric:tabular-nums}
+  .audstats .stat span{font-size:9px;letter-spacing:.09em;color:var(--faint);font-weight:600;text-transform:uppercase}
+  .audbar{display:flex;gap:9px;align-items:center;margin-bottom:10px;flex-wrap:wrap}
+  .chainok{
+    font-size:11.5px;font-weight:550;color:var(--good);background:var(--good-bg);border:1px solid var(--good-line);border-radius:9px;
+    padding:8px 12px;flex:1;min-width:240px;
+  }
+  .lentry{display:flex;gap:10px;align-items:flex-start;padding:9px 6px;border-bottom:1px solid var(--line-soft);font-size:12px;animation:pop .3s ease;flex-wrap:wrap;cursor:pointer;border-radius:8px}
+  .lentry:hover{background:#FBFCFE}
+  .ltag{font-family:var(--mono);font-size:8.5px;font-weight:600;letter-spacing:.06em;border-radius:5px;padding:3px 7px;flex:none;margin-top:1px}
+  .ltag.delegate{background:#EEEAFB;color:#5B4AAE}
+  .ltag.publish{background:#E3F2FA;color:#0A6E8A}
+  .ltag.decide{background:#EEEAFB;color:#5B4AAE}
+  .ltag.execute{background:var(--good-bg);color:var(--good)}
+  .ltag.control{background:var(--amber-bg);color:var(--amber)}
+  .ltag.authorize{background:#E9F5E7;color:#2E6B2A}
+  .ltag.discover{background:#FDF1E3;color:#95570F}
+  .lentry .ltxt{flex:1;line-height:1.45;color:var(--text);min-width:200px}
+  .lentry .ltxt b{color:var(--ink)}
+  .lentry .lhash{font-family:var(--mono);font-size:9px;color:var(--faint);white-space:nowrap;margin-top:2px}
+  .lstatus{font-family:var(--mono);font-size:8.5px;font-weight:600;border-radius:4px;padding:2px 6px;letter-spacing:.05em;margin-left:8px}
+  .lstatus.approved{background:var(--good-bg);color:var(--good)}
+  .lstatus.blocked{background:var(--bad-bg);color:var(--bad)}
+  .ldetail{width:100%;font-family:var(--mono);font-size:10px;background:#071A30;color:#7E93B2;border-radius:9px;padding:11px 13px;margin:6px 0 4px;white-space:pre;overflow-x:auto;line-height:1.65}
+  .ldetail .k{color:#7FC4FF}.ldetail .s{color:var(--lime)}
+  @keyframes vflash{0%{background:var(--good-bg)}100%{background:transparent}}
+  .lentry.vflash{animation:vflash .8s ease}
+
+  /* ---------- channels view ---------- */
+  .steps-legend{display:flex;gap:8px;margin-bottom:18px;flex-wrap:wrap;align-items:center}
+  .stepchip{
+    font-family:var(--mono);font-size:10.5px;font-weight:600;letter-spacing:.07em;color:var(--faint);
+    border:1px solid var(--line);border-radius:999px;padding:6px 14px;background:#fff;transition:all .2s;
+  }
+  .stepchip.on{background:var(--navy);color:var(--lime);border-color:var(--navy);box-shadow:var(--shadow)}
+  .steps-legend .arrow{color:var(--faint);font-size:12px}
+  .hub-wrap{display:grid;grid-template-columns:1fr 380px;gap:18px;align-items:start}
+  @media(max-width:1100px){.hub-wrap{grid-template-columns:1fr}}
+  .hub-card{position:relative;height:620px;overflow:hidden;padding:0}
+  #hubsvg{position:absolute;inset:0;width:100%;height:100%}
+  .hub-center{
+    position:absolute;width:150px;height:150px;border-radius:50%;background:var(--navy);color:#fff;
+    display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;text-align:center;
+    box-shadow:0 8px 40px -8px rgba(10,37,64,.45);z-index:5;transform:translate(-50%,-50%);
+  }
+  .hub-center .hc-mark{width:34px;height:34px;border-radius:10px;background:var(--lime);color:var(--lime-ink);font-weight:600;font-size:15px;display:flex;align-items:center;justify-content:center}
+  .hub-center b{font-size:12.5px;font-weight:600;line-height:1.25}
+  .hub-center span{font-family:var(--mono);font-size:8.5px;color:#8DA2C0;letter-spacing:.08em}
+  .chnode{
+    position:absolute;transform:translate(-50%,-50%);z-index:4;cursor:pointer;
+    display:flex;align-items:center;gap:9px;background:#fff;border:1px solid var(--line);border-radius:13px;
+    padding:9px 13px;box-shadow:var(--shadow);transition:all .2s;min-width:132px;
+  }
+  .chnode:hover{box-shadow:var(--shadow-lg);border-color:#C7CEDA}
+  .chnode.connected{border-color:#B7D45A;background:#FBFDF3}
+  .chnode.pulsing{border-color:var(--navy)}
+  .chnode .cmark{width:26px;height:26px;border-radius:8px;color:#fff;font-weight:600;font-size:10px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .chnode .cname{font-size:12px;font-weight:600;color:var(--ink);line-height:1.2}
+  .chnode .cstat{font-family:var(--mono);font-size:8px;color:var(--faint);letter-spacing:.06em}
+  .chnode.connected .cstat{color:var(--good)}
+  .pulse-dot{position:absolute;width:9px;height:9px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px 2px rgba(198,243,46,.65);z-index:6;pointer-events:none;transform:translate(-50%,-50%)}
+  .hub-hint{position:absolute;bottom:14px;left:0;right:0;text-align:center;font-size:11px;color:var(--faint);z-index:5}
+
+  .chan-side .sidehead{font-size:11px;letter-spacing:.11em;font-weight:600;color:var(--faint);text-transform:uppercase;margin-bottom:10px}
+  .authlog{display:flex;flex-direction:column;gap:8px;max-height:330px;overflow-y:auto}
+  .authrow{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:11px;padding:9px 12px;background:#fff;animation:pop .3s ease;font-size:12px}
+  .authrow .amark{width:24px;height:24px;border-radius:7px;color:#fff;font-weight:600;font-size:9px;display:inline-flex;align-items:center;justify-content:center;flex:none}
+  .authrow .atxt{flex:1;color:var(--text)}
+  .authrow .atxt b{color:var(--ink);font-weight:550}
+  .authrow .ahash{font-family:var(--mono);font-size:8.5px;color:var(--faint)}
+  .authlog-empty{font-size:11.5px;color:var(--faint);border:1px dashed var(--line);border-radius:11px;padding:16px;text-align:center}
+
+  /* authorization modal */
+  #authmodal{
+    position:fixed;inset:0;z-index:100;display:none;align-items:center;justify-content:center;
+    background:rgba(10,37,64,.42);backdrop-filter:blur(3px);padding:20px;
+  }
+  #authmodal.show{display:flex}
+  .authcard{
+    background:#fff;border-radius:18px;box-shadow:var(--shadow-lg);width:420px;max-width:94vw;padding:24px;
+    animation:pop .28s ease;
+  }
+  .authcard .ahead{display:flex;align-items:center;gap:12px;margin-bottom:6px}
+  .authcard .ahead .amark{width:38px;height:38px;border-radius:11px;color:#fff;font-weight:600;font-size:13px;display:inline-flex;align-items:center;justify-content:center}
+  .authcard .ahead b{font-size:15px;color:var(--ink);font-weight:600;display:block}
+  .authcard .ahead span{font-size:11.5px;color:var(--faint)}
+  .authcard .aline{text-align:center;font-family:var(--mono);font-size:10px;color:var(--faint);margin:10px 0;letter-spacing:.05em}
+  .scopebox{border:1px solid var(--line);border-radius:12px;padding:4px 14px;margin:12px 0}
+  .scope{display:flex;align-items:center;gap:9px;padding:9px 0;border-bottom:1px solid var(--line-soft);font-size:12.5px;color:var(--text)}
+  .scope:last-child{border-bottom:none}
+  .scope code{font-family:var(--mono);font-size:11px;color:var(--ink);font-weight:550}
+  .scope .sok{margin-left:auto;color:var(--good);font-size:12px}
+  .attests{background:var(--good-bg);border:1px solid var(--good-line);border-radius:12px;padding:11px 14px;font-size:12px;color:var(--good);margin-bottom:14px;line-height:1.7}
+  .authbtns{display:flex;gap:10px}
+  .authbtns .btn{flex:1;padding:11px}
+  .authnote{font-size:10px;color:var(--faint);text-align:center;margin-top:11px}
+
+  /* toast */
+  #toast{
+    position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(90px);z-index:120;
+    background:var(--navy);color:#fff;font-weight:500;font-size:12.5px;border-radius:999px;padding:11px 22px;
+    transition:transform .3s;box-shadow:var(--shadow-lg);max-width:90vw;text-align:center;
+  }
+  #toast.show{transform:translateX(-50%) translateY(0)}
+  footer{border-top:1px solid var(--line);padding:16px 28px;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;color:var(--faint);font-weight:500}
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <svg viewBox="0 0 2048 575" xmlns="http://www.w3.org/2000/svg" role="img" aria-label="vishwa">
+      <path fill="#0A2540" transform="translate(327,139)" d="m0 0 28 1 26 4 22 6 21 8 17 8 19 12 13 10 12 11 10 10 10 13 13 23-2 4-16-4-55-17-10-3-4 1 32 19 28 17 18 11 1 1-1 7-10 12-12 16-14 18-12 14-9 10-14 15-22 22-8 7-12 11-11 9-16 13-19 14-33 22-19 11-52 27-3 1h-9l-16-8-15-10-10-8-10-9-14-14-13-17-11-18-3-7 9 2 55 17 22 7 5-1-5-4-25-13-22-12-20-12-20-14-13-11-10-9-13-13-11-14-10-14-9-16-4-11-1-4v-16l4-13 6-10 11-11 15-8 12-4 5-1h14l-6 32h2l2-5 12-18 12-16 12-14 16-16 14-11 10-7 17-10 21-9 19-6 24-5 17-2z"/>
+      <path fill="#0A2540" transform="translate(471,46)" d="m0 0h23l22 3 21 6 19 9 11 8 10 9 9 12 8 15 5 16 2 12v33l-4 24-6 21-7 19-9 20-10 20-13 23-2 5 1 5 7 8 9 9 13 18 10 18 3 10v21l-5 14-9 12-13 9-19 7-13 4h-8l5-26v-4l-17 25-10 13-12 14-11 11-11 9-13 10-20 12-19 9-24 8-26 5-10 1h-58l-11 4-26 12-30 12-31 10-30 7-30 4h-34l-24-4-18-6-17-8-12-8-12-11-8-9-8-14-5-14-2-9v-24l3 1 5 18 7 14 10 13 12 10 14 8 16 7 19 5 14 2h32l21-3 30-7 36-11 26-10 29-14 23-12 24-14 23-14 16-11 16-12 11-9 13-11 12-11 10-9 24-24 7-8 11-12 7-8 12-14 11-12 13-17 10-15 12-21 12-25 9-23 6-19 4-19 2-21-1-22-3-15-5-15-8-14-11-12-10-8-15-8-17-5-31-5-16-1-1-3z"/>
+      <path fill="#0A2540" transform="translate(1428,267)" d="m0 0h53l3 5v118l2 9 6 11 9 8 11 5 9 2 13-1 10-4 5-4h2l2-4 5-9 2-9 1-124 3-3h53l3 3 1 124 3 10 5 8 7 6 9 4 11 2 16-2 10-5 6-5 7-11 2-7 1-124 2-3h54l2 1 1 3v117l-2 18-5 15-6 11-8 10-10 9-14 8-16 6-19 4-11 1h-12l-17-2-21-6-13-7-10-10h-5l-10 10-14 8-16 5-17 2h-20l-19-3-18-6-16-9-13-11-8-10-7-14-4-15-1-13v-117z"/>
+      <path fill="#0A2540" transform="translate(1158,173)" d="m0 0h50l4 3v105l29-12 15-4 12-2 11-1h15l21 3 21 7 16 9 11 9 7 8 6 10 5 13 2 16v125l-4 4h-50l-4-3-1-115-2-10-6-12-9-7-13-6-13-3h-23l-15 4-15 8-8 7-6 12-1 6-1 116-4 3h-50l-4-3v-287z"/>
+      <path fill="#0A2540" transform="translate(1904,261)" d="m0 0h31l24 4 18 6 19 10 12 9 7 6 9 11 9 14 6 16 3 12 1 8v106l-3 3h-51l-3-2-1-3v-60l-1-40-4-17-6-11-7-8-10-7-12-6-11-3-7-1h-15l-17 3-16 6-10 6-9 8-8 14-3 10v19l4 12 7 11 7 7 14 9 15 6 15 3h21l16-3 11-4h3v45l-3 3-14 4-22 3h-23l-20-3-16-5-12-5-17-9-12-9-10-9-9-11-8-14-5-15-2-10v-24l4-18 7-16 7-11 11-13 12-10 14-9 17-8 19-6z"/>
+      <path fill="#0A2540" transform="translate(652,267)" d="m0 0h55l4 4 27 121 4 16 6 9v2l12 6 10 1 10-3 9-8 5-10 9-37 22-97 4-4h55v7l-23 100-9 38-6 15-7 11-11 11-15 10-11 5-13 4-13 2h-13l-19-3-15-5-15-8-11-9-8-10-9-17-7-26-17-72-11-48z"/>
+      <path fill="#0A2540" transform="translate(1062,263)" d="m0 0h23l16 4 17 7 3 3 1 5-11 33-2 2-9-2-14-5-4-1h-9l-8 3-5 5-3 6v6l7 12 19 28 10 13 9 11 5 10 2 9v10l-3 12-5 10-9 10-11 7-16 7-16 3h-20l-18-4-16-8-4-5 1-7 10-29 2-1 27 7h12l8-4 3-5 1-4v-7l-4-10-14-21-14-23-9-15-1-2v-22l1-20 5-10 10-7 16-7z"/>
+      <path fill="#0A2540" transform="translate(904,267)" d="m0 0h53l2 2v194l-4 3h-50l-4-4v-191z"/>
+      <path fill="#0A2540" transform="translate(402,75)" d="m0 0h24l21 3 18 5 16 8 12 9 9 10 6 10 5 11 4 17v28h-2l-8-19-7-12-11-11-13-8-16-6-16-3-11-1h-22l-24 3-22 5-14 4-6 1-36 1-23 3-22 5-27 9-21 10-16 10-16 12-12 11-12 12-8 10-6 3-8-1 3-5 9-9 11-9 10-9 11-9 16-12 20-13 21-13 24-14 27-14 24-10 36-12 23-6 19-3z"/>
+      <path fill="#0A2540" transform="translate(923,182)" d="m0 0h13l13 4 9 7 5 8 2 8-1 9-4 8-7 6-8 4-15 4-14-3-10-6-7-7-3-7v-11l4-10 5-6 10-6z"/>
+      <path fill="#0A2540" transform="translate(27,450)" d="m0 0h37l3 4 5 14 6 10 9 10 11 8 12 6 10 4 1 2-5 1h-12l-17-3-15-5-15-8-13-10-8-9-7-14z"/>
+      <path fill="#FFFFFF" transform="translate(314,182)" d="m0 0h1l5 35 4 4 37 5v2l-10 2-28 4-3 4-5 30-1 4h-2l-5-34-3-4-36-5-3-2 7-2 28-3 6-3 3-16 4-19z"/>
+      <path fill="#0A2540" transform="translate(251,3)" d="m0 0h17l3 4v13l-4 4h-15l-4-4v-13z"/>
+      <path fill="#0A2540" transform="translate(102,86)" d="m0 0h18l2 2v17l-3 2h-16l-3-2v-17z"/>
+      <path fill="#FFFFFF" transform="translate(217,262)" d="m0 0h1l1 10 3 5 4 2 10 1-1 3-12 2-3 3-2 12-2 1-3-14-3-2-12-2 15-15z"/>
+      <path fill="#0A2540" transform="translate(286,73)" d="m0 0 10 1 3 4v8l-3 5h-14l-3-4v-9l3-4z"/>
+      <path fill="#0A2540" transform="translate(178,135)" d="m0 0h10l4 3v12l-2 3-12 1-4-3-1-4v-7l2-4z"/>
+      <path fill="#0A2540" transform="translate(170,81)" d="m0 0h7l4 4v7l-4 4h-8l-3-3v-9z"/>
+      <path fill="#0A2540" transform="translate(321,30)" d="m0 0h9l2 2v10l-2 2h-11l-2-2v-9z"/>
+    </svg>
+    <span class="xtag">RWA rails · USDY &amp; OUSG</span>
+  </div>
+  <div class="spacer"></div>
+  <div class="tabs">
+    <button class="tab active" id="tab-studio" onclick="switchView('studio')"><span class="num">01</span>Product MCP</button>
+    <button class="tab" id="tab-treasury" onclick="switchView('treasury')"><span class="num">02</span>Treasury</button>
+    <button class="tab" id="tab-channels" onclick="switchView('channels')"><span class="num">03</span>AI Channels</button>
+  </div>
+  <button class="reset-btn" onclick="location.reload()">reset</button>
+</header>
+
+<main>
+
+<!-- ============ VIEW 1 : PRODUCT MCP ============ -->
+<section class="view active" id="view-studio">
+  <div class="hero-line">Ondo's products, <span class="accent">agent-callable.</span></div>
+  <div class="hero-sub">Drop the offering documents for USDY and OUSG, confirm the extracted policy, route the approvals — each product becomes an MCP that treasuries and every AI channel can discover and call, with its policy attached.</div>
+
+  <div class="cols">
+    <div class="card" id="card-upload">
+      <h3><span class="stepnum">1</span>Source package</h3>
+      <div class="sub">Offering docs, eligibility policies, fund prospectus, audit attestations.</div>
+      <div class="drop" id="drop" onclick="document.getElementById('fileinput').click()">
+        <div class="arrow">↑</div>
+        <b>Drag product documents here</b>
+        <span>PDF · DOCX — parsed locally, nothing leaves this machine</span>
+      </div>
+      <input type="file" id="fileinput" multiple style="display:none">
+      <div class="filelist" id="filelist"></div>
+      <div class="btnrow">
+        <button class="btn" onclick="loadSamplePackage()">Load Ondo product package</button>
+        <button class="btn primary" id="btn-extract" onclick="startExtraction()" disabled>Extract product policy →</button>
+      </div>
+    </div>
+
+    <div class="card dim" id="card-policy">
+      <h3><span class="stepnum">2</span>Extracted policy</h3>
+      <div class="sub">Two products, two rulebooks — every fact sourced, every gate machine-enforceable.</div>
+      <div id="extract-progress"></div>
+      <div id="policy-out"></div>
+    </div>
+
+    <div class="card dim" id="card-approve">
+      <h3><span class="stepnum">3</span>Approvals → Product MCP</h3>
+      <div class="sub">Product ops uploads, portfolio signs terms, compliance signs the gates.</div>
+
+      <div class="role" id="role-assoc">
+        <div class="avatar">PO</div>
+        <div class="rinfo"><div class="rname">Product Ops</div><div class="rdesc" id="assoc-desc">Uploads the source package</div></div>
+        <span class="rstat waiting" id="assoc-stat">PENDING</span>
+      </div>
+      <div class="role" id="role-fm">
+        <div class="avatar">PM</div>
+        <div class="rinfo"><div class="rname">Portfolio Manager</div><div class="rdesc">Reviews terms, NAV mechanics &amp; yield representations</div></div>
+        <span class="badge" id="fm-badge" hidden>AWAITING REVIEW</span>
+        <button class="btn lime" id="btn-fm" onclick="openReview('fm')" disabled>Review →</button>
+        <span class="rstat ok" id="fm-stat" hidden>APPROVED ✓</span>
+        <div class="review" id="fm-review" hidden>
+          <div class="rv-hint">Confirm each item to sign — nothing becomes callable until every box is checked.</div>
+          <div class="rvitem" onclick="toggleRv(event,this,'fm')"><input type="checkbox"><div><b>USDY terms &amp; accrual mechanics</b><span>Daily-accruing NAV · APY variable, stated as indicative · min $500 (OM-U §2)</span></div></div>
+          <div class="rvitem" onclick="toggleRv(event,this,'fm')"><input type="checkbox"><div><b>OUSG terms &amp; liquidity</b><span>24/7 instant mint &amp; redeem in USDC · min $100,000 (PR-O §1.4)</span></div></div>
+          <div class="rvitem" onclick="toggleRv(event,this,'fm')"><input type="checkbox"><div><b>Yield representations</b><span>All APY figures indicative &amp; non-guaranteed everywhere they appear</span></div></div>
+          <button class="btn primary" id="btn-fm-approve" onclick="approveRole('fm')" disabled>Approve as Portfolio Manager — 0/3 confirmed</button>
+        </div>
+      </div>
+      <div class="role" id="role-risk">
+        <div class="avatar">CO</div>
+        <div class="rinfo"><div class="rname">Compliance Officer</div><div class="rdesc">Signs off investor gates, jurisdiction and AML</div></div>
+        <span class="badge" id="risk-badge" hidden>AWAITING SIGN-OFF</span>
+        <button class="btn lime" id="btn-risk" onclick="openReview('risk')" disabled>Review →</button>
+        <span class="rstat ok" id="risk-stat" hidden>SIGNED ✓</span>
+        <div class="review" id="risk-review" hidden>
+          <div class="rv-hint">These gates become hard blocks inside the MCP — an agent cannot talk past them on any channel.</div>
+          <div class="rvitem" onclick="toggleRv(event,this,'risk')"><input type="checkbox"><div><b>USDY — investor gate</b><span>Non-US persons only (Reg S) · KYC before any draft order (EP-U §2)</span></div></div>
+          <div class="rvitem" onclick="toggleRv(event,this,'risk')"><input type="checkbox"><div><b>OUSG — investor gate</b><span>Qualified Purchasers · attestation + KYC required (EP-O §3)</span></div></div>
+          <div class="rvitem" onclick="toggleRv(event,this,'risk')"><input type="checkbox"><div><b>AML &amp; sanctions screening</b><span>Wallet screened before settlement, on every channel (EP §5)</span></div></div>
+          <button class="btn primary" id="btn-risk-approve" onclick="approveRole('risk')" disabled>Sign off as Compliance — 0/3 confirmed</button>
+        </div>
+      </div>
+
+      <div class="btnrow">
+        <button class="btn primary" id="btn-generate" onclick="generateMCP()" disabled>Generate Product MCP</button>
+      </div>
+      <div id="mcp-out"></div>
+    </div>
+  </div>
+
+  <div class="card ledger-card">
+    <h3><span class="stepnum">⛓</span>Workflow trail</h3>
+    <div class="sub">Upload → confirm policy → sign → generate → publish. Every step is a signed, hash-chained receipt.</div>
+    <div id="wf-trail"><div class="shelf-empty">Steps appear here as the workflow runs.</div></div>
+  </div>
+</section>
+
+<!-- ============ VIEW 2 : TREASURY ============ -->
+<section class="view" id="view-treasury">
+  <div class="hero-line">A client treasury <span class="accent">subscribes in minutes,</span> inside its own mandate.</div>
+  <div class="hero-sub">The moment the Ondo product MCP is published, this treasury's agent can see USDY and OUSG, price an allocation against the mandate, and execute — every step gated and receipted.</div>
+
+  <div class="tre-grid">
+    <div>
+      <div class="card">
+        <h3><span class="stepnum">◎</span>Treasury state</h3>
+        <div class="sub">Live positions · mandate v1.0 <span style="font-family:var(--mono);font-size:10px">0xdc0e…6afe</span></div>
+        <table class="postable" id="positions">
+          <thead><tr><th>ASSET</th><th class="r">BALANCE</th><th class="r">USD VALUE</th></tr></thead>
+          <tbody>
+            <tr><td class="asset">USDC <div class="venue">Circle · operating</div></td><td class="r" id="usdc-bal">4,500,000</td><td class="r" id="usdc-usd">$4,500,000.00</td></tr>
+            <tr><td class="asset">ETH <div class="venue">native · staked</div></td><td class="r">120.0</td><td class="r">$348,000.00</td></tr>
+            <tr class="total"><td>TOTAL</td><td></td><td class="r" id="total-usd">$4,848,000.00</td></tr>
+          </tbody>
+        </table>
+        <div class="mandate">
+          <span class="mtag g">✓ Operating floor $2,000,000</span>
+          <span class="mtag g">✓ Single-asset cap 40%</span>
+          <span class="mtag">EVM owner 0xd6…681d</span>
+          <span class="mtag">Plaid · 2 accounts</span>
+        </div>
+        <div class="ctrl-row">
+          <span class="mode">GUARDED EXECUTION · KILL SWITCH ARMED</span>
+          <div class="spacer"></div>
+          <button class="pause" onclick="toast('Workflow paused — a preventive control, not clean-up')">Pause</button>
+          <button class="kill" onclick="toast('Kill switch armed — all agent authority revocable instantly')">Kill switch</button>
+        </div>
+      </div>
+
+      <div class="card shelf" style="margin-top:18px">
+        <h3><span class="stepnum">◈</span>Discoverable products</h3>
+        <div class="sub">Product MCPs this treasury's agent can see and call.</div>
+        <div class="prod"><span class="pmark" style="background:#4B5BD8">B</span>
+          <div><div class="pname">BENJI</div><div class="pdesc">Franklin Templeton · tokenized money fund</div></div>
+          <div class="pright"><div class="py">4.1% · 7-day</div><div class="ptag">MCP · LIVE</div></div>
+        </div>
+        <div id="shelf-new">
+          <div class="shelf-empty">Publish the Ondo package in the MCP studio and USDY &amp; OUSG appear here.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="card chat-card">
+      <div class="chat-head">
+        <span class="cdot"></span>
+        <div><b>Treasury Agent</b><br><span>Reads live positions, mandate and forecast. Won't execute without the gated Decide step.</span></div>
+      </div>
+      <div class="chat-body" id="chat"></div>
+      <div class="chips" id="chips">
+        <button class="chip" onclick="ask('positions')">Show my positions</button>
+        <button class="chip" onclick="ask('deployable')">What can I safely deploy?</button>
+        <button class="chip" id="chip-discover" onclick="ask('discover')">Discover new products</button>
+        <button class="chip" id="chip-deploy" onclick="ask('deployUSDY')" disabled>Subscribe $250,000 to USDY</button>
+        <button class="chip" id="chip-min" onclick="ask('deployOUSGsmall')" disabled>Try $50,000 of OUSG — watch the gate</button>
+      </div>
+      <div class="inputrow">
+        <input id="chatinput" placeholder="Ask the agent… e.g. subscribe 250000 to USDY" onkeydown="if(event.key==='Enter')sendFree()">
+        <button class="send" onclick="sendFree()">↑</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="card ledger-card">
+    <h3><span class="stepnum">⛓</span>Verifiable audit ledger</h3>
+    <div class="sub">Hash-chained receipts, ed25519-signed by key <span style="font-family:var(--mono);font-size:10px">8vX33iDc…</span> — each entry commits to the previous one, so history cannot be rewritten without breaking the chain. Click any receipt to inspect the signed payload.</div>
+    <div class="audstats" id="audstats"></div>
+    <div class="audbar">
+      <div class="chainok" id="chainok"></div>
+      <button class="btn lime" onclick="verifyChain()">Verify chain now</button>
+      <button class="btn" onclick="exportEvidence()">Export evidence pack ↓</button>
+    </div>
+    <div id="ledger"></div>
+  </div>
+</section>
+
+<!-- ============ VIEW 3 : AI CHANNELS ============ -->
+<section class="view" id="view-channels">
+  <div class="hero-line">One product MCP. <span class="accent">Every channel.</span></div>
+  <div class="hero-sub">Publish once — ChatGPT, Claude, Gemini, Copilot, Telegram, Discord, Slack, banking platforms and treasury agents can all discover USDY &amp; OUSG, request terms, and get authorized. The product's policy travels with it: the same eligibility, AML and limit gates run on every channel.</div>
+
+  <div class="steps-legend">
+    <span class="stepchip" id="st-discover">1 · DISCOVER</span><span class="arrow">→</span>
+    <span class="stepchip" id="st-request">2 · REQUEST</span><span class="arrow">→</span>
+    <span class="stepchip" id="st-authorize">3 · AUTHORIZE + ATTEST</span>
+    <div class="spacer"></div>
+    <button class="btn primary" id="btn-runall" onclick="runAllChannels()">▶ Play sequence</button>
+  </div>
+
+  <div class="hub-wrap">
+    <div class="card hub-card" id="hubcard">
+      <svg id="hubsvg"></svg>
+      <div class="hub-center" id="hubcenter">
+        <div class="hc-mark">O</div>
+        <b>Ondo Product MCP</b>
+        <span id="hub-status">AWAITING PUBLISH</span>
+      </div>
+      <div class="hub-hint">Click any channel to run Discover → Request → Authorize + Attest</div>
+    </div>
+
+    <div class="card chan-side">
+      <div class="sidehead">Channel authorizations</div>
+      <div class="authlog" id="authlog"><div class="authlog-empty">No channels authorized yet. Publish the product MCP, then click a channel — or press ▶ Play sequence.</div></div>
+      <div class="sidehead" style="margin-top:18px">What travels with the product</div>
+      <div class="gates">
+        <div class="gate"><span class="gi">⛨</span><div><b>Eligibility gates</b><span>USDY: non-US persons (Reg S) · OUSG: Qualified Purchasers — enforced before any draft order, on every surface.</span></div></div>
+        <div class="gate"><span class="gi">⛨</span><div><b>AML &amp; sanctions screening</b><span>Wallet screened before settlement — an LLM cannot talk its way past it.</span></div></div>
+        <div class="gate"><span class="gi">⛨</span><div><b>Limits &amp; minimums</b><span>USDY min $500 · OUSG min $100,000 · per-channel caps — checked at draft and re-checked at execution.</span></div></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>PRODUCT MCP · POLICY-GUARDED DISTRIBUTION · VERIFIABLE AUDIT — VISHWA × ONDO PRODUCT RAILS</footer>
+
+<!-- authorization modal -->
+<div id="authmodal">
+  <div class="authcard">
+    <div class="ahead">
+      <span class="amark" id="am-mark">C</span>
+      <div><b id="am-name">Claude</b><span id="am-sub">agent requests access to <code>ondo.products.vishwa</code></span></div>
+    </div>
+    <div class="aline">— requests the following scopes —</div>
+    <div class="scopebox">
+      <div class="scope"><code>get_terms</code><span>read product terms &amp; NAV</span><span class="sok">✓</span></div>
+      <div class="scope"><code>check_eligibility</code><span>run investor gates</span><span class="sok">✓</span></div>
+      <div class="scope"><code>prepare_subscription</code><span>draft orders — never execute</span><span class="sok">✓</span></div>
+    </div>
+    <div class="attests" id="am-attests">
+      ✓ KYC verified &nbsp;·&nbsp; ✓ AML screen clear<br>
+      ✓ Investor attestation on file &nbsp;·&nbsp; ✓ Jurisdiction screened
+    </div>
+    <div class="authbtns">
+      <button class="btn primary" id="btn-authorize" onclick="finishAuthorize()">Authorize agent</button>
+      <button class="btn" onclick="closeAuth(true)">Deny</button>
+    </div>
+    <div class="authnote">Authorization is scoped, revocable, and recorded as a signed receipt on the audit chain.</div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ================= state ================= */
+const USDY_NAV = 1.0672, OUSG_NAV = 112.84;
+const S = {
+  files: [], extracted:false, fmApproved:false, riskApproved:false,
+  mcpGenerated:false, published:false,
+  usdc: 4500000, usdy: 0, ousg: 0,
+  receipts: 0, approvals: [], trailN: 0,
+  connected: new Set(), seqRunning:false,
+};
+const fmt  = n => '$' + n.toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+const fmt0 = n => n.toLocaleString('en-US');
+const totalTreasury = () => S.usdc + 348000 + S.usdy + S.ousg;
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');clearTimeout(t._h);t._h=setTimeout(()=>t.classList.remove('show'),3200)}
+function hash6(){return Array.from({length:6},()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join('')}
+function hashLong(){return '0x'+Array.from({length:40},()=>'0123456789abcdef'[Math.floor(Math.random()*16)]).join('')}
+function nowHM(){return new Date().toTimeString().slice(0,5)}
+
+function switchView(v){
+  ['studio','treasury','channels'].forEach(x=>{
+    document.getElementById('view-'+x).classList.toggle('active', x===v);
+    document.getElementById('tab-'+x).classList.toggle('active', x===v);
+  });
+  window.scrollTo({top:0,behavior:'instant'});
+  if(v==='treasury' && !S._chatInit){S._chatInit=true;agentIntro()}
+  if(v==='channels') setTimeout(layoutHub, 30);
+}
+
+/* ================= workflow trail ================= */
+function addTrail(tag, text){
+  S.trailN++;
+  const t = document.getElementById('wf-trail');
+  if(S.trailN===1) t.innerHTML='';
+  t.insertAdjacentHTML('afterbegin',
+    `<div class="lentry" style="cursor:default"><span class="ltag ${tag}">${({control:'UPLOAD',decide:'POLICY',delegate:'SIGN',execute:'GENERATE',publish:'PUBLISH'})[tag]}</span><div class="ltxt">${text}</div><span class="lhash">${nowHM()} · ⛓ ${hash6()}</span></div>`);
+}
+
+/* ================= step 1 : files ================= */
+const drop=document.getElementById('drop');
+;['dragover','dragenter'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.add('over')}));
+;['dragleave','drop'].forEach(ev=>drop.addEventListener(ev,e=>{e.preventDefault();drop.classList.remove('over')}));
+drop.addEventListener('drop',e=>addFiles([...e.dataTransfer.files].map(f=>({name:f.name,size:f.size}))));
+document.getElementById('fileinput').addEventListener('change',e=>addFiles([...e.target.files].map(f=>({name:f.name,size:f.size}))));
+
+function loadSamplePackage(){
+  addFiles([
+    {name:'USDY_Offering_Memorandum.pdf',size:2841003},
+    {name:'USDY_Eligibility_Policy.pdf',size:512446},
+    {name:'OUSG_Fund_Prospectus.pdf',size:3187201},
+    {name:'OUSG_Qualified_Purchaser_Policy.pdf',size:428864},
+    {name:'Ondo_Reserve_Attestation_Q2.pdf',size:1104880},
+  ]);
+}
+function addFiles(list){
+  if(!list.length)return;
+  list.forEach((f,i)=>{
+    S.files.push(f);
+    const row=document.createElement('div');row.className='file';
+    const kb=f.size?(f.size>1048576?(f.size/1048576).toFixed(1)+' MB':Math.round(f.size/1024)+' KB'):'';
+    const ext=(f.name.split('.').pop()||'DOC').toUpperCase().slice(0,4);
+    row.innerHTML=`<span class="ftype">${ext}</span><span class="fname">${f.name}</span><span class="fsize">${kb}</span><span class="fstat parsing">PARSING<span class="spinner"></span></span>`;
+    document.getElementById('filelist').appendChild(row);
+    setTimeout(()=>{row.querySelector('.fstat').outerHTML='<span class="fstat ready">READY</span>';checkExtractReady()},650+i*420);
+  });
+}
+function checkExtractReady(){
+  const allReady=document.querySelectorAll('#filelist .fstat.ready').length===S.files.length&&S.files.length>0;
+  document.getElementById('btn-extract').disabled=!allReady;
+  if(allReady&&!S._uploadLogged){
+    S._uploadLogged=true;
+    document.getElementById('assoc-desc').textContent=`Uploaded source package · ${S.files.length} documents`;
+    document.getElementById('assoc-stat').outerHTML='<span class="rstat ok">DONE ✓</span>';
+    document.getElementById('role-assoc').classList.add('done');
+    addTrail('control',`Product Ops uploaded ${S.files.length} documents — parsed locally, checksums pinned.`);
+  }
+}
+
+/* ================= step 2 : extraction ================= */
+const EXTRACT_STEPS=[
+  'Reading USDY offering memorandum — accrual, NAV, transfer terms',
+  'Reading OUSG prospectus — fund structure, liquidity, minimums',
+  'Parsing eligibility policies — investor gates, jurisdictions',
+  'Cross-checking reserve attestation — verified facts only',
+  'Compiling both rulebooks into machine-enforceable policy',
+];
+function startExtraction(){
+  document.getElementById('btn-extract').disabled=true;
+  document.getElementById('card-policy').classList.remove('dim');
+  const prog=document.getElementById('extract-progress');
+  prog.innerHTML=EXTRACT_STEPS.map((s,i)=>`<div class="exline" id="ex-${i}"><span class="tick"></span>${s}</div>`).join('');
+  EXTRACT_STEPS.forEach((s,i)=>{
+    setTimeout(()=>{const el=document.getElementById('ex-'+i);el.classList.add('doing');el.querySelector('.tick').innerHTML='<span class="spinner"></span>'},i*720);
+    setTimeout(()=>{const el=document.getElementById('ex-'+i);el.classList.remove('doing');el.classList.add('done');el.querySelector('.tick').textContent='✓';if(i===EXTRACT_STEPS.length-1)showPolicy()},i*720+680);
+  });
+}
+function showPolicy(){
+  document.getElementById('policy-out').innerHTML=`
+    <div class="prodgroup">
+      <div class="phead"><span class="pmark" style="background:#175CD3">U</span>
+        <div><div class="pname">USDY</div><div class="ptype">US Dollar Yield token — T-bills + bank deposits</div></div>
+        <span class="pyield">4.29% APY</span></div>
+      <div class="polrow"><span class="pk">NAV</span><span class="pv">$${USDY_NAV} · accrues daily, yield in price</span><span class="src">OM-U p.6</span></div>
+      <div class="polrow"><span class="pk">Investor gate</span><span class="pv">Non-US persons only (Reg S) · KYC before any draft order</span><span class="src">EP-U §2</span></div>
+      <div class="polrow"><span class="pk">Minimum</span><span class="pv">$500 initial subscription · redemption in USDC</span><span class="src">OM-U §2.3</span></div>
+    </div>
+    <div class="prodgroup">
+      <div class="phead"><span class="pmark" style="background:#0A2540">O</span>
+        <div><div class="pname">OUSG</div><div class="ptype">Tokenized short-term US Treasuries fund</div></div>
+        <span class="pyield">4.16% APY</span></div>
+      <div class="polrow"><span class="pk">NAV</span><span class="pv">$${OUSG_NAV} · 24/7 instant mint &amp; redeem in USDC</span><span class="src">PR-O p.9</span></div>
+      <div class="polrow"><span class="pk">Investor gate</span><span class="pv">Qualified Purchasers · attestation + KYC required</span><span class="src">EP-O §3</span></div>
+      <div class="polrow"><span class="pk">Minimum</span><span class="pv">$100,000 initial subscription · $10,000 increments</span><span class="src">PR-O §1.4</span></div>
+    </div>
+    <div class="polrow" style="border:1px solid var(--line);border-radius:10px;margin-top:12px;padding:9px 11px"><span class="pk">Attestation</span><span class="pv">Q2 reserve report verified — assets held at custodian, 1:1 coverage</span><span class="src">ATT p.2</span></div>`;
+  S.extracted=true;
+  document.getElementById('card-approve').classList.remove('dim');
+  document.getElementById('role-fm').classList.add('active');
+  document.getElementById('btn-fm').disabled=false;
+  document.getElementById('fm-badge').hidden=false;
+  addTrail('decide','Policy compiled — 31 verified facts, 11 eligibility rules, 9 terms across USDY & OUSG. Routed to Portfolio Manager.');
+  toast('Policy compiled — route it through the approval chain →');
+}
+
+/* ================= step 3 : approvals + MCP ================= */
+function openReview(which){
+  document.getElementById('btn-'+which).style.display='none';
+  document.getElementById(which+'-badge').hidden=true;
+  document.getElementById(which+'-review').hidden=false;
+}
+function toggleRv(ev,el,which){
+  const cb=el.querySelector('input');
+  if(ev.target!==cb)cb.checked=!cb.checked;
+  el.classList.toggle('checked',cb.checked);
+  const panel=document.getElementById(which+'-review');
+  const total=panel.querySelectorAll('.rvitem').length;
+  const n=panel.querySelectorAll('.rvitem input:checked').length;
+  const ab=document.getElementById('btn-'+which+'-approve');
+  ab.disabled=n<total;
+  ab.textContent=(which==='fm'?'Approve as Portfolio Manager':'Sign off as Compliance')+` — ${n}/${total} confirmed`;
+}
+function approveRole(which){
+  const sig='0x'+hash6()+hash6();
+  if(which==='fm'){
+    S.fmApproved=true;S.approvals.push({role:'portfolio_manager',sig});
+    const c=document.getElementById('role-fm');
+    c.classList.remove('active');c.classList.add('done');
+    document.getElementById('fm-review').hidden=true;
+    document.getElementById('fm-stat').hidden=false;
+    c.querySelector('.rinfo').insertAdjacentHTML('beforeend',`<div class="sig">3/3 confirmed · signed ${sig} · ${nowHM()}</div>`);
+    addTrail('delegate',`Portfolio Manager approved terms for USDY & OUSG (3/3) — signature ${sig}. Routed to Compliance.`);
+    document.getElementById('role-risk').classList.add('active');
+    document.getElementById('btn-risk').disabled=false;
+    document.getElementById('risk-badge').hidden=false;
+  }
+  if(which==='risk'){
+    S.riskApproved=true;S.approvals.push({role:'compliance_officer',sig});
+    const c=document.getElementById('role-risk');
+    c.classList.remove('active');c.classList.add('done');
+    document.getElementById('risk-review').hidden=true;
+    document.getElementById('risk-stat').hidden=false;
+    c.querySelector('.rinfo').insertAdjacentHTML('beforeend',`<div class="sig">3/3 gates confirmed · signed ${sig} · ${nowHM()}</div>`);
+    addTrail('delegate',`Compliance signed off all investor & AML gates (3/3) — signature ${sig}. Package fully approved.`);
+    document.getElementById('btn-generate').disabled=false;
+    toast('All roles signed — generate the Product MCP');
+  }
+}
+
+function generateMCP(){
+  document.getElementById('btn-generate').disabled=true;
+  document.getElementById('mcp-out').innerHTML=`
+    <div class="mcp-card">
+      <div class="mtitle">
+        <span class="mlogo">O</span>
+        <div><div class="mname">Ondo Product Agent</div><div class="msub">built from ${S.files.length} approved documents · policy hash 0x${hash6()}${hash6()}</div></div>
+        <span class="live">READY</span>
+      </div>
+      <div class="mstat"><span>Products</span><b>USDY · OUSG</b></div>
+      <div class="mstat"><span>Knowledge</span><b>31 verified product facts</b></div>
+      <div class="mstat"><span>Policy</span><b>11 eligibility &amp; approval rules</b></div>
+      <div class="mstat" style="border:none"><span>Actions</span><b>4 controlled workflow actions</b></div>
+      <div class="tools">
+        <span class="tool">get_terms(product)</span><span class="tool">check_eligibility(product, investor)</span>
+        <span class="tool">prepare_subscription(product, amount)</span><span class="tool">request_redemption(product, amount)</span>
+      </div>
+      <div class="manifest">{
+  <span class="k">"mcp"</span>: <span class="s">"ondo.products.vishwa"</span>,
+  <span class="k">"version"</span>: <span class="s">"1.0.0"</span>,
+  <span class="k">"products"</span>: [<span class="s">"USDY"</span>, <span class="s">"OUSG"</span>],
+  <span class="k">"policy_hash"</span>: <span class="s">"0x${hash6()}${hash6()}${hash6()}"</span>,
+  <span class="k">"approvals"</span>: [
+    { <span class="k">"role"</span>: <span class="s">"product_ops"</span>,        <span class="k">"action"</span>: <span class="s">"uploaded ${S.files.length} docs"</span> },
+    { <span class="k">"role"</span>: <span class="s">"portfolio_manager"</span>,  <span class="k">"sig"</span>: <span class="s">"${(S.approvals[0]||{}).sig||''}"</span> },
+    { <span class="k">"role"</span>: <span class="s">"compliance_officer"</span>, <span class="k">"sig"</span>: <span class="s">"${(S.approvals[1]||{}).sig||''}"</span> }
+  ],
+  <span class="k">"gates"</span>: {
+    <span class="k">"USDY"</span>: [<span class="s">"reg_s_non_us"</span>, <span class="s">"kyc"</span>, <span class="s">"aml"</span>, <span class="s">"min_500"</span>],
+    <span class="k">"OUSG"</span>: [<span class="s">"qualified_purchaser"</span>, <span class="s">"kyc"</span>, <span class="s">"aml"</span>, <span class="s">"min_100000"</span>]
+  },
+  <span class="k">"enforcement"</span>: <span class="s">"policy travels with the product — same engine on every channel"</span>
+}</div>
+      <div class="btnrow">
+        <button class="btn lime" id="btn-publish" onclick="publishMCP()">Publish to registry</button>
+      </div>
+    </div>`;
+  S.mcpGenerated=true;
+  addTrail('execute','Ondo Product MCP generated — policy hash pinned, 4 controlled actions, both role signatures embedded.');
+  document.getElementById('mcp-out').scrollIntoView({behavior:'smooth',block:'center'});
+}
+
+function publishMCP(){
+  if(S.published)return;
+  S.published=true;
+  document.getElementById('btn-publish').disabled=true;
+  document.getElementById('mcp-out').insertAdjacentHTML('beforeend',`
+    <div class="publish-banner">⚡ <b>ondo.products.vishwa is live on the registry</b> — every connected treasury and AI channel can now discover USDY &amp; OUSG.
+      <span style="flex:1"></span>
+      <button class="btn primary" onclick="switchView('treasury')">Open Treasury →</button>
+      <button class="btn" onclick="switchView('channels')">See AI channels →</button>
+    </div>`);
+  document.getElementById('shelf-new').innerHTML=`
+    <div class="prod newprod"><span class="pmark" style="background:#175CD3">U</span>
+      <div><div class="pname">USDY<span class="newtag">NEW</span></div><div class="pdesc">Ondo · US Dollar Yield token</div></div>
+      <div class="pright"><div class="py">4.29% APY</div><div class="ptag">MCP · LIVE</div></div>
+    </div>
+    <div class="prod newprod"><span class="pmark" style="background:#0A2540">O</span>
+      <div><div class="pname">OUSG<span class="newtag">NEW</span></div><div class="pdesc">Ondo · tokenized US Treasuries fund</div></div>
+      <div class="pright"><div class="py">4.16% APY</div><div class="ptag">MCP · LIVE</div></div>
+    </div>`;
+  document.getElementById('hub-status').textContent='LIVE · 2 PRODUCTS';
+  addTrail('publish','ondo.products.vishwa published — discoverable by every connected treasury & AI channel from this moment.');
+  addLedger('publish','<b>ondo.products.vishwa</b> registered — policy hash pinned, USDY & OUSG exposed, eligibility gates armed.',null,['policy hash pinned to manifest','role signatures embedded (PM, CO)','gates armed: reg_s, qualified_purchaser, kyc, aml, minimums']);
+  toast('Published — USDY & OUSG are now discoverable everywhere');
+}
+
+/* ================= treasury chat ================= */
+const chat=document.getElementById('chat');
+function addMsg(who,html){
+  const m=document.createElement('div');m.className='msg '+who;
+  m.innerHTML=`<div class="who">${who==='user'?'TREASURER':'TREASURY AGENT'}</div><div class="bubble">${html}</div>`;
+  chat.appendChild(m);chat.scrollTop=chat.scrollHeight;return m;
+}
+function agentReply(html,delay=900){
+  const t=addMsg('agent','<span class="typing"><i></i><i></i><i></i></span>');
+  return new Promise(res=>setTimeout(()=>{t.querySelector('.bubble').innerHTML=html;chat.scrollTop=chat.scrollHeight;res(t)},delay));
+}
+function agentIntro(){
+  agentReply(`Talk to the treasury agent. I read your <b>live positions, mandate and forecast</b> to answer — and ask before I assume. I won't execute a move myself; that's the gated <b>Decide</b> step.`,600);
+}
+
+async function ask(intent,freeText){
+  const labels={positions:'Show my positions',deployable:'What can I safely deploy?',discover:'Discover new products',deployUSDY:'Subscribe $250,000 to USDY',deployOUSGsmall:'Subscribe $50,000 to OUSG'};
+  addMsg('user',freeText||labels[intent]||intent);
+
+  if(intent==='positions'){
+    await agentReply(`Reading treasury state — 2 bank accounts (Plaid) + on-chain wallets:
+      <table class="metrics">
+        <tr><td>USDC · operating</td><td class="r">${fmt(S.usdc)}</td></tr>
+        <tr><td>ETH · staked</td><td class="r">$348,000.00</td></tr>
+        ${S.usdy?`<tr class="hl"><td>USDY · Ondo</td><td class="r">${fmt(S.usdy)}</td></tr>`:''}
+        ${S.ousg?`<tr class="hl"><td>OUSG · Ondo</td><td class="r">${fmt(S.ousg)}</td></tr>`:''}
+        <tr class="hl"><td>Total treasury</td><td class="r">${fmt(totalTreasury())}</td></tr>
+      </table>
+      Mandate v1.0 is enforced: operating floor <b>$2,000,000</b>, single-asset cap <b>40%</b>.`);
+  }
+
+  if(intent==='deployable'){
+    const idle=S.usdc-2000000;
+    await agentReply(`Forecasting deployable capital against cash needs, scheduled outflows and your mandate:
+      <table class="metrics">
+        <tr><td>Total treasury</td><td class="r">${fmt(totalTreasury())}</td></tr>
+        <tr><td>Floor (untouchable)</td><td class="r">$2,000,000.00</td></tr>
+        <tr><td>Idle above floor</td><td class="r">${fmt(idle)}</td></tr>
+        <tr class="hl"><td>Cap-aware deployable</td><td class="r">$1,939,200.00</td></tr>
+        <tr><td>Projected yield (USDY, 4.29%)</td><td class="r">+$83,192/yr</td></tr>
+      </table>
+      The deployable amount is constrained by your concentration cap. ${S.published?`Two Ondo products are live on your shelf — <b>USDY</b> (4.29%, min $500) and <b>OUSG</b> (4.16%, min $100,000, Qualified Purchasers).`:`Publish the Ondo package in the MCP studio and I can price both products here.`}`);
+  }
+
+  if(intent==='discover'){
+    if(!S.published){
+      await agentReply(`I can see <b>BENJI</b> (Franklin Templeton) on the registry. No new products since your last scan — publish the Ondo package in the <b>Product MCP studio</b> and USDY &amp; OUSG will appear here instantly.`);
+    } else {
+      await agentReply(`Registry scan complete — <b>2 new products</b> since your last scan:
+        <div class="gates" style="margin-top:8px">
+          <div class="gate"><span class="gi">＋</span><div><b>USDY — US Dollar Yield token</b><span>4.29% APY · $${USDY_NAV} NAV, accrues daily · min $500 · via <code>ondo.products.vishwa</code></span></div></div>
+          <div class="gate"><span class="gi">＋</span><div><b>OUSG — tokenized US Treasuries</b><span>4.16% APY · 24/7 instant mint/redeem in USDC · min $100,000 · Qualified Purchasers</span></div></div>
+          <div class="gate"><span class="gi">✓</span><div><b>check_eligibility() run for this treasury</b><span>USDY: non-US entity attestation on file ✓ · OUSG: Qualified Purchaser attestation on file ✓ · AML clear ✓</span></div></div>
+        </div>
+        Both fit inside your mandate. Try <b>“Subscribe $250,000 to USDY”</b> — or test the product gate with $50,000 of OUSG.`);
+      document.getElementById('chip-deploy').disabled=false;
+      document.getElementById('chip-min').disabled=false;
+    }
+  }
+
+  if(intent==='deployUSDY')return runDeploy('USDY',250000);
+  if(intent==='deployOUSGsmall')return runDeploy('OUSG',50000);
+}
+
+async function runDeploy(product,amount){
+  if(!S.published){
+    await agentReply(`I don't see <b>${product}</b> on the registry yet — publish the Ondo Product MCP in the studio first, then I can call it.`);
+    return;
+  }
+  const newUsdc=S.usdc-amount;
+  const floorOk=newUsdc>=2000000;
+  const minOk=product==='OUSG'?amount>=100000:amount>=500;
+  const conc=((product==='USDY'?S.usdy:S.ousg)+amount)/totalTreasury()*100;
+
+  if(!minOk){
+    await agentReply(`Running the Decide gate for <b>${fmt(amount)} → ${product}</b>:
+      <div class="gates">
+        <div class="gate"><span class="gi">✓</span><div><b>Approved asset (registry)</b><span>${product} MCP verified — policy hash matches the published manifest.</span></div></div>
+        <div class="gate bad"><span class="gi">✕</span><div><b>Product minimum — via ondo.check_eligibility(${product})</b><span>OUSG minimum initial subscription is <b>$100,000</b>. This gate ships inside the product MCP — the same block fires on ChatGPT, Telegram or any other channel.</span></div></div>
+      </div>
+      <span class="verdict no">BLOCKED — below product minimum</span><br>
+      <span style="font-size:11.5px;color:var(--faint)">Nothing was executed; the denial is receipted below. USDY (min $500) would accept this amount.</span>`,1300);
+    addLedger('decide',`Gate BLOCKED subscribing ${fmt(amount)} to ${product} (MIN_SUBSCRIPTION): product minimum $100,000 — gate enforced from the product's own policy.`,'blocked',['approved_asset ✓','min_subscription ✕ $100,000']);
+    return;
+  }
+  if(!floorOk){
+    await agentReply(`Running the Decide gate for <b>${fmt(amount)} → ${product}</b>:
+      <div class="gates">
+        <div class="gate"><span class="gi">✓</span><div><b>Approved asset (registry)</b><span>${product} MCP verified.</span></div></div>
+        <div class="gate bad"><span class="gi">✕</span><div><b>Operating cash floor — FLOOR_BREACH</b><span>Would leave ${fmt(newUsdc)} in USDC, below the $2,000,000 floor.</span></div></div>
+      </div>
+      <span class="verdict no">BLOCKED — deployment would breach the operating floor</span>`,1300);
+    addLedger('decide',`Gate BLOCKED subscribing ${fmt(amount)} to ${product} (FLOOR_BREACH).`,'blocked',['approved_asset ✓','cash_floor ✕ FLOOR_BREACH']);
+    return;
+  }
+
+  const nav=product==='USDY'?USDY_NAV:OUSG_NAV;
+  const units=amount/nav;
+  const apy=product==='USDY'?0.0429:0.0416;
+  await agentReply(`Running the Decide gate for <b>${fmt(amount)} → ${product}</b>:
+    <div class="gates">
+      <div class="gate"><span class="gi">✓</span><div><b>Approved asset (registry)</b><span>${product} MCP verified — policy hash matches the published manifest.</span></div></div>
+      <div class="gate"><span class="gi">✓</span><div><b>Eligibility — via ondo.check_eligibility(${product})</b><span>${product==='USDY'?'Non-US entity attestation on file, KYC current, AML clear.':'Qualified Purchaser attestation on file, KYC current, AML clear.'} Min ${product==='USDY'?'$500':'$100,000'} met.</span></div></div>
+      <div class="gate"><span class="gi">✓</span><div><b>Operating cash floor</b><span>Leaves ${fmt(newUsdc)} in USDC, at or above the $2,000,000 floor.</span></div></div>
+      <div class="gate"><span class="gi">✓</span><div><b>Single-asset concentration</b><span>${product} would be ${conc.toFixed(1)}% of treasury, within the 40% cap.</span></div></div>
+      <div class="gate"><span class="gi">✓</span><div><b>Policy integrity</b><span>Enforcing mandate v1.0 (0xdc0e…6afe).</span></div></div>
+    </div>
+    <table class="metrics">
+      <tr><td>Idle above floor</td><td class="r">${fmt(S.usdc-2000000)} → ${fmt(newUsdc-2000000)}</td></tr>
+      <tr><td>${product} share of book</td><td class="r">${((product==='USDY'?S.usdy:S.ousg)/totalTreasury()*100).toFixed(1)}% → ${conc.toFixed(1)}%</td></tr>
+      <tr class="hl"><td>Projected yield</td><td class="r">+$${fmt0(Math.round(amount*apy))}/yr</td></tr>
+    </table>
+    <span class="verdict ok">APPROVED — 5 CHECKS PASSED</span>
+    <div class="confirm-row">
+      <button class="btn primary" onclick="confirmDeploy('${product}',${amount},this)">Confirm — prepare_subscription()</button>
+      <button class="btn" onclick="cancelDeploy(this)">Cancel</button>
+    </div>`,1500);
+  addLedger('decide',`Gate APPROVED subscribing ${fmt(amount)} to ${product} (5 checks passed).`,'approved',['approved_asset ✓','eligibility ✓','cash_floor ✓','concentration ✓','policy_integrity ✓']);
+}
+
+async function confirmDeploy(product,amount,btn){
+  btn.closest('.confirm-row').innerHTML='<span style="font-size:11.5px;color:var(--faint)">Confirmed by holder ✓</span>';
+  const tx=hashLong();
+  const nav=product==='USDY'?USDY_NAV:OUSG_NAV;
+  const units=amount/nav;
+  await agentReply(`Policy re-checked at execution ✓ — calling <code>ondo.prepare_subscription(${product})</code>…
+    <div class="receipt">✓ Subscribe ${fmt0(amount)} USDC → ${fmt0(Math.round(units))} ${product} @ $${nav} NAV
+✓ On-chain execution: agent-signed transfer within policy
+  tx <span class="h">${tx}</span>
+  receipt evm-1-${S.receipts} · hash-chained · ed25519-signed
+✓ Settlement ${product==='OUSG'?'instant · 24/7 mint in USDC':'T+1 · USDC rail'} · venue AML-screened</div>
+    Positions updated. The transaction and its policy result are receipted in the audit ledger below — evidence returns to the institution and feeds the next decision.`,1600);
+  S.usdc-=amount;
+  if(product==='USDY')S.usdy+=amount;else S.ousg+=amount;
+  document.getElementById('usdc-bal').textContent=fmt0(S.usdc);
+  document.getElementById('usdc-usd').textContent=fmt(S.usdc);
+  const rowId='row-'+product.toLowerCase();
+  const bal=product==='USDY'?S.usdy:S.ousg;
+  if(!document.getElementById(rowId)){
+    document.querySelector('#positions tr.total').insertAdjacentHTML('beforebegin',
+      `<tr class="newrow" id="${rowId}"><td class="asset">${product}<span class="newtag">NEW</span><div class="venue">Ondo · ${product==='USDY'?'yield token':'treasuries fund'}</div></td><td class="r">${fmt0(Math.round(bal/nav))}</td><td class="r">${fmt(bal)}</td></tr>`);
+  }else{
+    const r=document.getElementById(rowId).querySelectorAll('td');
+    r[1].textContent=fmt0(Math.round(bal/nav));r[2].textContent=fmt(bal);
+  }
+  document.getElementById('total-usd').textContent=fmt(totalTreasury());
+  addLedger('execute',`On-chain execution: agent-signed subscription of ${fmt(amount)} to ${product} within policy — tx ${tx.slice(0,10)}… (receipt evm-1-${S.receipts}).`,'approved',['policy re-checked at execution','venue AML-screened',product==='OUSG'?'instant mint in USDC':'settlement T+1']);
+  toast('Executed — receipt appended to the audit chain');
+}
+function cancelDeploy(btn){
+  btn.closest('.confirm-row').innerHTML='<span style="font-size:11.5px;color:var(--faint)">Cancelled — nothing executed, denial receipted.</span>';
+  addLedger('control','Holder CANCELLED the prepared subscription at the confirm step. No execution.');
+}
+
+function sendFree(){
+  const inp=document.getElementById('chatinput');
+  const v=inp.value.trim();if(!v)return;inp.value='';
+  const lower=v.toLowerCase();
+  if(lower.includes('subscribe')||lower.includes('deploy')||lower.includes('buy')){
+    let amt=250000;
+    const m=lower.replace(/[,$]/g,'').match(/(\d+(?:\.\d+)?)\s*(k|m)?/);
+    if(m){amt=parseFloat(m[1]);if(m[2]==='k')amt*=1e3;if(m[2]==='m')amt*=1e6}
+    const product=lower.includes('ousg')?'OUSG':'USDY';
+    addMsg('user',v);
+    return runDeploy(product,Math.round(amt));
+  }
+  if(lower.includes('position')||lower.includes('balance'))return ask('positions',v);
+  if(lower.includes('safely')||lower.includes('idle')||lower.includes('yield')||lower.includes('deployable'))return ask('deployable',v);
+  if(lower.includes('discover')||lower.includes('product')||lower.includes('new'))return ask('discover',v);
+  if(lower.includes('mandate')||lower.includes('policy')){
+    addMsg('user',v);
+    return agentReply(`Your mandate v1.0 (<code>0xdc0e…6afe</code>): operating floor <b>$2,000,000</b> in USDC, single-asset concentration cap <b>40%</b>, agent authority delegated by owner <code>0xd6…681d</code>, kill switch armed. Every approval, denial and execution is hash-chained in the audit ledger.`);
+  }
+  addMsg('user',v);
+  agentReply(`I can read your <b>positions</b>, forecast <b>what's safely deployable</b>, <b>discover products</b>, or run a policy-gated subscription — e.g. <i>“subscribe 250000 to USDY”</i> or <i>“subscribe 150000 to OUSG”</i>.`);
+}
+
+/* ================= ledger ================= */
+const LEDGER=[];
+const ACTORS={delegate:'owner:0xd6f15fe…8681d',publish:'registry.vishwa',decide:'policy.engine.v1',execute:'treasury.agent',control:'holder',authorize:'auth.gateway',discover:'registry.vishwa'};
+function addLedger(tag,text,status,checks){
+  S.receipts++;
+  const prev=LEDGER.length?LEDGER[LEDGER.length-1].hash:'000000 (genesis)';
+  LEDGER.push({seq:LEDGER.length+1,ts:new Date().toISOString().slice(0,19)+'Z',actor:ACTORS[tag]||tag,tag,text,status:status||null,policy_checks:checks||[],sig:'ed25519:'+hash6()+hash6()+hash6()+'…',prev_hash:prev.slice(0,6),hash:hash6()});
+  renderLedger();
+}
+function renderLedger(){
+  const l=document.getElementById('ledger');
+  l.innerHTML=[...LEDGER].reverse().map(e=>{
+    const st=e.status?`<span class="lstatus ${e.status}">${e.status}</span>`:'';
+    return `<div class="lentry" onclick="toggleReceipt(event,this)">
+      <span class="ltag ${e.tag}">${e.tag.toUpperCase()}</span>
+      <div class="ltxt">${e.text}${st}</div>
+      <span class="lhash">⛓ ${e.hash} ← ${e.prev_hash}</span>
+      <div class="ldetail" hidden>${receiptJSON(e)}</div>
+    </div>`;
+  }).join('');
+  const checks=LEDGER.reduce((n,e)=>n+e.policy_checks.length,0);
+  const blocked=LEDGER.filter(e=>e.status==='blocked').length;
+  document.getElementById('audstats').innerHTML=`
+    <div class="stat"><b>${LEDGER.length}</b><span>Signed receipts</span></div>
+    <div class="stat"><b>${checks}</b><span>Policy checks recorded</span></div>
+    <div class="stat"><b>${blocked}</b><span>Blocked &amp; receipted</span></div>
+    <div class="stat"><b>0</b><span>Overrides / gaps</span></div>`;
+  document.getElementById('chainok').textContent=`Chain intact ✓ — ${LEDGER.length} receipts, every hash + signature + link verified on read`;
+}
+function receiptJSON(e){
+  const checks=e.policy_checks.length?`[ <span class="s">"${e.policy_checks.join('"</span>, <span class="s">"')}"</span> ]`:'[]';
+  return `{
+  <span class="k">"seq"</span>: ${e.seq},  <span class="k">"ts"</span>: <span class="s">"${e.ts}"</span>,
+  <span class="k">"actor"</span>: <span class="s">"${e.actor}"</span>,
+  <span class="k">"action"</span>: <span class="s">"${e.tag.toUpperCase()}${e.status?' · '+e.status.toUpperCase():''}"</span>,
+  <span class="k">"policy_checks"</span>: ${checks},
+  <span class="k">"sig"</span>: <span class="s">"${e.sig}"</span>,
+  <span class="k">"prev_hash"</span>: <span class="s">"${e.prev_hash}"</span>,
+  <span class="k">"hash"</span>: <span class="s">"${e.hash}"</span>
+}`;
+}
+function toggleReceipt(ev,el){
+  if(ev.target.closest('.ldetail'))return;
+  const d=el.querySelector('.ldetail');d.hidden=!d.hidden;
+}
+function verifyChain(){
+  const entries=[...document.querySelectorAll('#ledger .lentry')].reverse();
+  const ck=document.getElementById('chainok');
+  ck.textContent='Re-verifying — recomputing every hash, signature and link…';
+  entries.forEach((el,i)=>setTimeout(()=>{el.classList.remove('vflash');void el.offsetWidth;el.classList.add('vflash')},i*130));
+  setTimeout(()=>{
+    ck.textContent=`Re-verified just now ✓ — ${LEDGER.length}/${LEDGER.length} receipts valid · chain unbroken · no tampering, no gaps`;
+    toast('Audit chain re-verified — every receipt checks out');
+  },entries.length*130+500);
+}
+function exportEvidence(){
+  const pack={ledger:'vishwa.ondo.audit',signing_key:'8vX33iDc…',exported_at:new Date().toISOString(),verified:true,
+    receipts:LEDGER.map(e=>({seq:e.seq,ts:e.ts,actor:e.actor,action:e.tag,status:e.status,policy_checks:e.policy_checks,sig:e.sig,prev_hash:e.prev_hash,hash:e.hash,memo:e.text.replace(/<[^>]+>/g,'')}))};
+  const blob=new Blob([JSON.stringify(pack,null,2)],{type:'application/json'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='ondo-audit-evidence-pack.json';a.click();URL.revokeObjectURL(a.href);
+  toast('Evidence pack exported — hand it straight to your auditor');
+}
+addLedger('delegate',`Owner <span style="font-family:var(--mono);font-size:10px">0xd6f15fe…8681d</span> authorized agent under mandate v1.0 — spend ≤ policy caps, kill switch armed.`,null,['mandate v1.0 hash pinned','delegation scope: subscribe within caps','kill switch armed']);
+
+/* ================= channels hub ================= */
+const CHANNELS=[
+  {id:'chatgpt', name:'ChatGPT',        mark:'GPT', color:'#10A37F'},
+  {id:'claude',  name:'Claude',         mark:'C',   color:'#C6613F'},
+  {id:'gemini',  name:'Gemini',         mark:'G',   color:'#3E7BFA'},
+  {id:'copilot', name:'Copilot',        mark:'Co',  color:'#7B5BD6'},
+  {id:'telegram',name:'Telegram',       mark:'TG',  color:'#229ED9'},
+  {id:'discord', name:'Discord',        mark:'D',   color:'#5865F2'},
+  {id:'slack',   name:'Slack',          mark:'S',   color:'#611F69'},
+  {id:'bank',    name:'Banking platform',mark:'B',  color:'#0A2540'},
+  {id:'tagent',  name:'Treasury Agent', mark:'T',   color:'#188554'},
+];
+let hubBuilt=false;
+function layoutHub(){
+  const card=document.getElementById('hubcard');
+  const W=card.clientWidth,H=card.clientHeight;
+  const cx=W/2,cy=H/2-14;
+  const rx=Math.min(W/2-110,W*0.38),ry=Math.min(H/2-80,H*0.36);
+  const center=document.getElementById('hubcenter');
+  center.style.left=cx+'px';center.style.top=cy+'px';
+  const svg=document.getElementById('hubsvg');
+  svg.setAttribute('viewBox',`0 0 ${W} ${H}`);
+  let lines='';
+  CHANNELS.forEach((c,i)=>{
+    const a=-Math.PI/2+i*(2*Math.PI/CHANNELS.length);
+    const x=cx+rx*Math.cos(a),y=cy+ry*Math.sin(a);
+    c._x=x;c._y=y;c._cx=cx;c._cy=cy;
+    lines+=`<line id="line-${c.id}" x1="${cx}" y1="${cy}" x2="${x}" y2="${y}" stroke="${S.connected.has(c.id)?'#9BC53D':'#DDE3EB'}" stroke-width="${S.connected.has(c.id)?2:1.2}" stroke-dasharray="${S.connected.has(c.id)?'none':'5 5'}"/>`;
+    let node=document.getElementById('node-'+c.id);
+    if(!node){
+      node=document.createElement('div');
+      node.className='chnode';node.id='node-'+c.id;
+      node.onclick=()=>runSequence(c.id);
+      node.innerHTML=`<span class="cmark" style="background:${c.color}">${c.mark}</span><div><div class="cname">${c.name}</div><div class="cstat" id="stat-${c.id}">REACHABLE</div></div>`;
+      card.appendChild(node);
+    }
+    node.style.left=x+'px';node.style.top=y+'px';
+  });
+  svg.innerHTML=lines;
+  hubBuilt=true;
+}
+window.addEventListener('resize',()=>{if(document.getElementById('view-channels').classList.contains('active'))layoutHub()});
+
+function setStep(step){
+  ['discover','request','authorize'].forEach(s=>document.getElementById('st-'+s).classList.toggle('on',s===step));
+  if(!step)['discover','request','authorize'].forEach(s=>document.getElementById('st-'+s).classList.remove('on'));
+}
+function movePulse(fromX,fromY,toX,toY,ms){
+  return new Promise(res=>{
+    const card=document.getElementById('hubcard');
+    const dot=document.createElement('div');dot.className='pulse-dot';card.appendChild(dot);
+    const t0=performance.now();
+    (function step(t){
+      const p=Math.min(1,(t-t0)/ms);
+      const e=p<.5?2*p*p:1-Math.pow(-2*p+2,2)/2;
+      dot.style.left=(fromX+(toX-fromX)*e)+'px';
+      dot.style.top=(fromY+(toY-fromY)*e)+'px';
+      if(p<1)requestAnimationFrame(step);else{dot.remove();res()}
+    })(t0);
+  });
+}
+
+let pendingChannel=null;
+async function runSequence(id){
+  const c=CHANNELS.find(x=>x.id===id);
+  if(!c||S.seqRunning)return;
+  if(!S.published){toast('Publish the Ondo Product MCP first (tab 01) — then channels can discover it');return}
+  S.seqRunning=true;
+  const node=document.getElementById('node-'+id);
+  node.classList.add('pulsing');
+  // 1 discover: channel -> center
+  setStep('discover');
+  document.getElementById('stat-'+id).textContent='DISCOVERING…';
+  await movePulse(c._x,c._y,c._cx,c._cy,850);
+  addLedger('discover',`<b>${c.name}</b> discovered <b>ondo.products.vishwa</b> on the registry — read manifest, verified policy hash.`,null,['registry lookup','policy hash verified']);
+  // 2 request: center -> channel
+  setStep('request');
+  document.getElementById('stat-'+id).textContent='REQUESTING TERMS…';
+  await movePulse(c._cx,c._cy,c._x,c._y,850);
+  // 3 authorize: modal
+  setStep('authorize');
+  document.getElementById('stat-'+id).textContent='AWAITING AUTHORIZATION';
+  openAuth(c);
+}
+function openAuth(c){
+  pendingChannel=c;
+  document.getElementById('am-mark').style.background=c.color;
+  document.getElementById('am-mark').textContent=c.mark;
+  document.getElementById('am-name').textContent=c.name;
+  document.getElementById('authmodal').classList.add('show');
+}
+function closeAuth(denied){
+  document.getElementById('authmodal').classList.remove('show');
+  if(denied&&pendingChannel){
+    document.getElementById('stat-'+pendingChannel.id).textContent='REACHABLE';
+    document.getElementById('node-'+pendingChannel.id).classList.remove('pulsing');
+    addLedger('control',`Authorization DENIED for ${pendingChannel.name} — no access granted, denial receipted.`);
+    setStep(null);
+    S.seqRunning=false;
+    if(S._queue&&S._queue.length)setTimeout(()=>runSequence(S._queue.shift()),300);
+    pendingChannel=null;
+  }
+}
+async function finishAuthorize(){
+  const c=pendingChannel;if(!c)return;
+  document.getElementById('authmodal').classList.remove('show');
+  pendingChannel=null;
+  S.connected.add(c.id);
+  const node=document.getElementById('node-'+c.id);
+  node.classList.remove('pulsing');node.classList.add('connected');
+  document.getElementById('stat-'+c.id).textContent='CONNECTED · POLICY-BOUND';
+  const line=document.getElementById('line-'+c.id);
+  if(line){line.setAttribute('stroke','#9BC53D');line.setAttribute('stroke-width','2');line.setAttribute('stroke-dasharray','none')}
+  const log=document.getElementById('authlog');
+  if(S.connected.size===1)log.innerHTML='';
+  const sig='0x'+hash6();
+  log.insertAdjacentHTML('afterbegin',`
+    <div class="authrow"><span class="amark" style="background:${c.color}">${c.mark}</span>
+      <div class="atxt"><b>${c.name}</b> authorized — scoped to get_terms · check_eligibility · prepare_subscription</div>
+      <span class="ahash">⛓ ${sig.slice(2)}</span></div>`);
+  addLedger('authorize',`<b>${c.name}</b> AUTHORIZED on <b>ondo.products.vishwa</b> — scopes: get_terms, check_eligibility, prepare_subscription · attestations verified · revocable.`,null,['kyc verified','aml screen clear','investor attestation on file','scope: draft-only, never execute']);
+  toast(`${c.name} connected — same policy engine, new channel`);
+  await movePulse(c._cx,c._cy,c._x,c._y,600);
+  setStep(null);
+  S.seqRunning=false;
+  document.getElementById('hub-status').textContent=`LIVE · ${S.connected.size} CHANNEL${S.connected.size>1?'S':''} CONNECTED`;
+  if(S._queue&&S._queue.length)setTimeout(()=>runSequence(S._queue.shift()),350);
+}
+function runAllChannels(){
+  if(!S.published){toast('Publish the Ondo Product MCP first (tab 01) — then channels can discover it');return}
+  S._queue=CHANNELS.filter(c=>!S.connected.has(c.id)).map(c=>c.id);
+  if(S._queue.length)runSequence(S._queue.shift());
+}
+</script>
+</body>
+</html>
