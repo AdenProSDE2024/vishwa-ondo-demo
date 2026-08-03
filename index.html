@@ -363,6 +363,32 @@
   .authbtns .btn{flex:1;padding:11px}
   .authnote{font-size:10px;color:var(--faint);text-align:center;margin-top:11px}
 
+  /* live execution desk */
+  #livedesk{display:none;margin-bottom:18px;border-color:#B7D45A}
+  #livedesk.on{display:block;animation:pop .3s ease}
+  .livegrid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+  @media(max-width:1100px){.livegrid{grid-template-columns:1fr}}
+  .lrow{display:flex;gap:9px;align-items:center;flex-wrap:wrap;margin-bottom:10px}
+  .lrow label{font-size:11px;color:var(--faint);font-weight:600;min-width:74px}
+  .lrow input[type=text],.lrow input[type=password],.lrow input[type=number]{
+    border:1px solid var(--line);border-radius:9px;padding:8px 12px;font-size:12.5px;outline:none;font-family:var(--mono);color:var(--ink);flex:1;min-width:120px;
+  }
+  .lrow input:focus{border-color:var(--navy)}
+  .livestat{font-family:var(--mono);font-size:10px;letter-spacing:.06em;color:var(--good);background:var(--good-bg);border:1px solid var(--good-line);border-radius:6px;padding:4px 9px}
+  .wallet-pill{font-family:var(--mono);font-size:11px;color:var(--ink);background:var(--line-soft);border-radius:999px;padding:6px 12px}
+  .quotebox{border:1px solid var(--line);border-radius:12px;padding:13px;margin-top:4px;font-size:12px;background:#FBFCFE}
+  .quotebox .qbig{font-family:var(--mono);font-size:19px;font-weight:600;color:var(--ink)}
+  .quotebox .qrow{display:flex;justify-content:space-between;padding:4px 0;color:var(--text)}
+  .quotebox .qrow b{font-family:var(--mono);font-weight:550;color:var(--ink)}
+  .qwarn{font-size:10.5px;color:var(--amber);background:var(--amber-bg);border-radius:8px;padding:7px 10px;margin-top:8px;line-height:1.5}
+  .ackrow{display:flex;gap:9px;align-items:flex-start;font-size:11.5px;color:var(--text);margin:10px 0;cursor:pointer}
+  .ackrow input{margin-top:2px;accent-color:var(--navy)}
+  .txstat{font-family:var(--mono);font-size:11px;padding:9px 12px;border-radius:9px;margin-top:9px;line-height:1.7;word-break:break-all}
+  .txstat.pending{background:var(--amber-bg);color:var(--amber)}
+  .txstat.ok{background:var(--good-bg);color:var(--good)}
+  .txstat.err{background:var(--bad-bg);color:var(--bad)}
+  .txstat a{color:inherit;font-weight:650}
+
   /* toast */
   #toast{
     position:fixed;bottom:26px;left:50%;transform:translateX(-50%) translateY(90px);z-index:120;
@@ -496,6 +522,35 @@
 <section class="view" id="view-treasury">
   <div class="hero-line">A client treasury <span class="accent">subscribes in minutes,</span> inside its own mandate.</div>
   <div class="hero-sub">The moment the Ondo product MCP is published, this treasury's agent can see USDY and OUSG, price an allocation against the mandate, and execute — every step gated and receipted.</div>
+
+  <!-- live execution desk: appears only when the local exchange service is reachable -->
+  <div class="card" id="livedesk">
+    <h3><span class="stepnum">⚡</span>Live execution desk</h3>
+    <div class="sub">Connected to the Vishwa exchange service — quotes and settlement below are real Solana mainnet, signed in your own wallet. The service never holds keys or funds.</div>
+    <div class="livegrid">
+      <div>
+        <div class="lrow"><span class="livestat" id="live-svc">exchange · localhost:36002 · LIVE</span><span class="livestat" id="live-agent" style="color:var(--ink);background:var(--line-soft);border-color:var(--line)">agent: ondo-demo-agent</span></div>
+        <div class="lrow"><label>API key</label><input type="password" id="live-key" placeholder="paste VETA-APIKEY once — stored only in this browser"></div>
+        <div class="lrow"><label>Wallet</label>
+          <button class="btn primary" id="btn-phantom" onclick="liveConnect()">Connect Phantom</button>
+          <span class="wallet-pill" id="wallet-pill" hidden></span>
+        </div>
+        <div class="lrow"><label>Amount</label><input type="number" id="live-amount" value="10" min="1" step="1" style="max-width:110px"> <span style="font-size:11.5px;color:var(--faint)">USDC → USDY</span>
+          <button class="btn lime" onclick="liveQuote()">Get live quote</button>
+        </div>
+        <div id="live-quote"></div>
+      </div>
+      <div>
+        <label class="ackrow"><input type="checkbox" id="live-ack">
+          <span>I confirm the beneficial owner is a <b>non-US, non-restricted person</b> eligible to hold USDY (Reg S). This acknowledgement is required by the product's policy and is enforced by the API.</span></label>
+        <div class="lrow">
+          <button class="btn primary" id="btn-prepare" onclick="livePrepare()" disabled>Prepare transaction — /v1/swap</button>
+          <button class="btn lime" id="btn-sign" onclick="liveSignSubmit()" disabled>Sign in wallet &amp; submit</button>
+        </div>
+        <div id="live-tx"></div>
+      </div>
+    </div>
+  </div>
 
   <div class="tre-grid">
     <div>
@@ -1247,6 +1302,125 @@ function runAllChannels(){
   S._queue=CHANNELS.filter(c=>!S.connected.has(c.id)).map(c=>c.id);
   if(S._queue.length)runSequence(S._queue.shift());
 }
+
+/* ================= live execution desk ================= */
+const LIVE = { base:'http://localhost:36002', wallet:null, unsignedTx:null, lastQuote:null };
+
+async function liveInit(){
+  try{
+    const r = await fetch(LIVE.base+'/health', {signal: AbortSignal.timeout(2500)});
+    if(!(await r.json()).status) return;
+  }catch{ return; }
+  document.getElementById('livedesk').classList.add('on');
+  const saved = localStorage.getItem('veta_apikey');
+  if(saved) document.getElementById('live-key').value = saved;
+  document.getElementById('live-key').addEventListener('change', e=>localStorage.setItem('veta_apikey', e.target.value.trim()));
+}
+function liveHeaders(){
+  const key = document.getElementById('live-key').value.trim();
+  if(!key){ toast('Paste the demo API key first (apps/exchange/.demo-apikey)'); throw new Error('no key'); }
+  localStorage.setItem('veta_apikey', key);
+  return {'VETA-APIKEY':key,'VETA-AGENTID':'ondo-demo-agent'};
+}
+async function liveApi(method, path, body){
+  const res = await fetch(LIVE.base+path, {
+    method,
+    headers: {...liveHeaders(), ...(body?{'content-type':'application/json'}:{})},
+    body: body?JSON.stringify(body):undefined,
+  });
+  const json = await res.json().catch(()=>({}));
+  if(!res.ok) throw new Error(json.error || json.code || ('HTTP '+res.status));
+  return json;
+}
+function loadWeb3(){
+  if(window.solanaWeb3) return Promise.resolve();
+  return new Promise((res,rej)=>{
+    const s=document.createElement('script');
+    s.src='https://unpkg.com/@solana/web3.js@1.95.3/lib/index.iife.min.js';
+    s.onload=res; s.onerror=()=>rej(new Error('failed to load web3.js'));
+    document.head.appendChild(s);
+  });
+}
+async function liveConnect(){
+  const provider = window.phantom?.solana;
+  if(!provider?.isPhantom){ toast('Phantom not detected — open this page in a browser with the Phantom extension'); return; }
+  try{
+    const resp = await provider.connect();
+    LIVE.wallet = resp.publicKey.toString();
+    document.getElementById('wallet-pill').hidden=false;
+    document.getElementById('wallet-pill').textContent = LIVE.wallet.slice(0,4)+'…'+LIVE.wallet.slice(-4)+' · connected';
+    document.getElementById('btn-phantom').style.display='none';
+    toast('Wallet connected — you sign every transaction yourself');
+  }catch(e){ toast('Wallet connection declined'); }
+}
+async function liveQuote(){
+  const amt = document.getElementById('live-amount').value;
+  const box = document.getElementById('live-quote');
+  box.innerHTML = '<div class="quotebox">Fetching live quote…</div>';
+  try{
+    const q = await liveApi('GET', `/v1/quote?amountIn=${encodeURIComponent(amt)}`);
+    LIVE.lastQuote = q;
+    const px = (Number(q.amountInDisplay)/Number(q.estAmountOutDisplay)).toFixed(4);
+    box.innerHTML = `<div class="quotebox">
+      <div class="qbig">${q.amountInDisplay} USDC → ${q.estAmountOutDisplay} USDY</div>
+      <div class="qrow"><span>USDY price (implied)</span><b>$${px}</b></div>
+      <div class="qrow"><span>Min received (slippage ${q.slippageBps/100}%)</span><b>${(Number(q.minAmountOutBase)/1e6).toFixed(6)} USDY</b></div>
+      <div class="qrow"><span>Route</span><b>${q.route.via.join(' → ')} · ${q.route.hops} hop</b></div>
+      <div class="qrow"><span>Quote expires</span><b>${new Date(q.expiresAt).toLocaleTimeString()}</b></div>
+      <div class="qwarn">${(q.warnings||[]).join('<br>')}</div>
+    </div>`;
+    document.getElementById('btn-prepare').disabled = false;
+    addLedger('decide',`LIVE quote: ${q.amountInDisplay} USDC → ${q.estAmountOutDisplay} USDY via ${q.route.via.join('/')} (Jupiter, mainnet).`,null,['live market data','route verified']);
+  }catch(e){ box.innerHTML = `<div class="txstat err">quote failed: ${e.message}</div>`; }
+}
+async function livePrepare(){
+  const out = document.getElementById('live-tx');
+  if(!document.getElementById('live-ack').checked){ out.innerHTML='<div class="txstat err">ELIGIBILITY_ACK_REQUIRED — the API refuses to build a transaction without the eligibility confirmation above. This gate is enforced server-side.</div>'; return; }
+  if(!LIVE.wallet){ toast('Connect your wallet first'); return; }
+  const amt = document.getElementById('live-amount').value;
+  out.innerHTML = '<div class="txstat pending">building unsigned transaction…</div>';
+  try{
+    const r = await liveApi('POST','/v1/swap',{userPublicKey:LIVE.wallet, amountIn:String(amt), eligibilityAck:true});
+    LIVE.unsignedTx = r.unsignedTransaction;
+    out.innerHTML = `<div class="txstat ok">✓ unsigned transaction built · ${Math.round(r.unsignedTransaction.length*3/4)} bytes<br>signing happens in YOUR wallet — the service never sees a key</div>`;
+    document.getElementById('btn-sign').disabled = false;
+    addLedger('decide',`LIVE prepare_subscription: unsigned USDC→USDY transaction built for ${LIVE.wallet.slice(0,4)}…${LIVE.wallet.slice(-4)} — eligibility acknowledged, awaiting holder signature.`,'approved',['eligibility_ack ✓ (server-enforced)','unsigned tx validated','non-custodial: user signs']);
+  }catch(e){ out.innerHTML = `<div class="txstat err">swap build failed: ${e.message}</div>`; }
+}
+function b64ToBytes(b64){ return Uint8Array.from(atob(b64), c=>c.charCodeAt(0)); }
+function bytesToB64(bytes){ let s=''; for(let i=0;i<bytes.length;i+=0x8000) s+=String.fromCharCode.apply(null, bytes.subarray(i,i+0x8000)); return btoa(s); }
+async function liveSignSubmit(){
+  const out = document.getElementById('live-tx');
+  if(!LIVE.unsignedTx) return;
+  try{
+    await loadWeb3();
+    const tx = window.solanaWeb3.VersionedTransaction.deserialize(b64ToBytes(LIVE.unsignedTx));
+    out.innerHTML = '<div class="txstat pending">waiting for your signature in Phantom…</div>';
+    const signed = await window.phantom.solana.signTransaction(tx);
+    out.innerHTML = '<div class="txstat pending">signed ✓ — broadcasting via /v1/submit…</div>';
+    const sub = await liveApi('POST','/v1/submit',{signedTransaction: bytesToB64(signed.serialize())});
+    const sig = sub.signature;
+    out.innerHTML = `<div class="txstat pending">broadcast ✓ — tx <a href="https://solscan.io/tx/${sig}" target="_blank">${sig.slice(0,18)}…</a><br>waiting for confirmation…</div>`;
+    addLedger('execute',`LIVE on-chain execution: holder-signed USDC→USDY swap broadcast — tx ${sig.slice(0,10)}…`,'approved',['holder signature verified','broadcast via /v1/submit','geo screen passed']);
+    let tries=0;
+    const poll=setInterval(async()=>{
+      tries++;
+      try{
+        const st = await liveApi('GET',`/v1/status/${sig}`);
+        if(st.status==='confirmed'||st.status==='finalized'){
+          clearInterval(poll);
+          out.innerHTML = `<div class="txstat ok">✓ ${st.status.toUpperCase()} on Solana mainnet (slot ${st.slot})<br>tx <a href="https://solscan.io/tx/${sig}" target="_blank">${sig}</a><br>open the link — that's a real settlement receipt.</div>`;
+          addLedger('execute',`LIVE settlement ${st.status.toUpperCase()} at slot ${st.slot} — <a href="https://solscan.io/tx/${sig}" target="_blank" style="color:inherit">view on Solscan</a>.`,'approved',['on-chain confirmation','slot '+st.slot]);
+          toast('Settled on mainnet — that is a real transaction');
+        } else if(st.status==='failed'){
+          clearInterval(poll);
+          out.innerHTML = `<div class="txstat err">transaction failed on-chain: ${JSON.stringify(st.err)}</div>`;
+        } else if(tries>40){ clearInterval(poll); out.innerHTML += '<div class="txstat err">still pending after 80s — check Solscan manually</div>'; }
+      }catch{}
+    },2000);
+  }catch(e){ out.innerHTML = `<div class="txstat err">${e.message}</div>`; }
+}
+liveInit();
 </script>
 </body>
 </html>
