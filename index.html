@@ -1168,6 +1168,7 @@ function exportEvidence(){
   toast('Evidence pack exported — hand it straight to your auditor');
 }
 addLedger('delegate',`Owner <span style="font-family:var(--mono);font-size:10px">0xd6f15fe…8681d</span> authorized agent under mandate v1.0 — spend ≤ policy caps, kill switch armed.`,null,['mandate v1.0 hash pinned','delegation scope: subscribe within caps','kill switch armed']);
+addLedger('execute',`On-chain settlement FINALIZED — USDC→USDY subscription via these rails, holder-signed · <a href="https://solscan.io/tx/9iUcubTk2oSkktCDZLMNPUdN4iPBrWq5ddB5s2tmbiZQz2A1Bjj7rzb3CFEZCg98Nx7eh3W7RAnHuXGnbSwUrNe" target="_blank" style="color:inherit;font-weight:650">view on Solscan ↗</a> (Solana mainnet, slot 437,051,680, 2026-08-03).`,'approved',['eligibility_ack enforced server-side','holder signature — non-custodial','geo screen passed','finalized at slot 437051680']);
 
 /* ================= channels hub ================= */
 const CHANNELS=[
